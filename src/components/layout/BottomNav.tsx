@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Home, ClipboardList, BarChart3, Settings } from 'lucide-react'
+import { Home, ClipboardList, BarChart3, Settings, Upload } from 'lucide-react'
 
 export default function BottomNav() {
   const { t } = useTranslation()
@@ -9,6 +9,7 @@ export default function BottomNav() {
   const navItems = [
     { path: '/', icon: Home, label: t('nav.home') },
     { path: '/quiz', icon: ClipboardList, label: t('nav.quiz') },
+    { path: '/import', icon: Upload, label: t('nav.import') },
     { path: '/stats', icon: BarChart3, label: t('nav.stats') },
     { path: '/settings', icon: Settings, label: t('nav.settings') },
   ]

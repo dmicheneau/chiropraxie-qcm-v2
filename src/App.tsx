@@ -6,6 +6,7 @@ import HomePage from './pages/Home'
 import QuizPage from './pages/Quiz'
 import StatsPage from './pages/Stats'
 import SettingsPage from './pages/Settings'
+import ImportPage from './pages/Import'
 
 function App() {
   const { loadSettings, theme } = useSettingsStore()
@@ -28,6 +29,7 @@ function App() {
           <Route path="/quiz" element={<QuizPage />} />
           <Route path="/stats" element={<StatsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/import" element={<ImportPage />} />
         </Routes>
       </Layout>
     </BrowserRouter>

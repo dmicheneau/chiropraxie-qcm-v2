@@ -53,23 +53,84 @@
   },
   "import": {
     "title": "Importer des questions",
+    "tabs": {
+      "quizlet": "Quizlet",
+      "pdf": "PDF",
+      "image": "Image",
+      "json": "Fichier JSON"
+    },
     "quizlet": {
       "title": "Importer depuis Quizlet",
-      "description": "Collez le contenu copié depuis Quizlet",
-      "placeholder": "Terme\\tDéfinition ou Terme | Définition",
-      "import": "Importer"
+      "description": "Copiez le contenu d'un set Quizlet et collez-le ci-dessous",
+      "instructions": "Comment copier depuis Quizlet:\n1. Ouvrez votre set Quizlet\n2. Cliquez sur '...' → 'Exporter'\n3. Copiez tout le contenu (Ctrl+A, Ctrl+C)\n4. Collez ici",
+      "placeholder": "Collez votre contenu ici...\n\nFormats acceptés:\n• Terme [Tab] Définition\n• Terme | Définition\n• 1. Terme - Définition",
+      "analyze": "Analyser",
+      "analyzing": "Analyse en cours...",
+      "formatDetected": "Format détecté",
+      "cardsFound": "{{count}} flashcard(s) trouvée(s)",
+      "confidence": "Confiance"
+    },
+    "conversion": {
+      "title": "Conversion en QCM",
+      "mode": "Mode de conversion",
+      "termToQuestion": "Terme → Question (Définition = Réponse)",
+      "definitionToQuestion": "Définition → Question (Terme = Réponse)",
+      "theme": "Thème",
+      "subtheme": "Sous-thème (optionnel)",
+      "difficulty": "Difficulté",
+      "shuffleChoices": "Mélanger les choix de réponse",
+      "convert": "Convertir en QCM",
+      "converting": "Conversion en cours..."
+    },
+    "preview": {
+      "title": "Prévisualisation",
+      "flashcards": "Flashcards détectées",
+      "questions": "Questions générées",
+      "selected": "{{count}} sélectionnée(s)",
+      "selectAll": "Tout sélectionner",
+      "deselectAll": "Tout désélectionner"
+    },
+    "save": {
+      "title": "Enregistrer dans la banque",
+      "selectBank": "Choisir une banque",
+      "createBank": "Créer une nouvelle banque",
+      "bankName": "Nom de la banque",
+      "bankDescription": "Description",
+      "addToBank": "Ajouter à la banque",
+      "adding": "Ajout en cours...",
+      "success": "{{count}} question(s) ajoutée(s) avec succès!",
+      "error": "Erreur lors de l'ajout"
     },
     "pdf": {
       "title": "Importer un PDF",
-      "description": "Sélectionnez un fichier PDF",
-      "select": "Choisir un fichier",
-      "import": "Importer"
+      "description": "Extrayez le texte d'un PDF pour générer des questions",
+      "select": "Choisir un fichier PDF",
+      "extracting": "Extraction en cours...",
+      "extracted": "Texte extrait ({{pages}} pages, {{words}} mots)",
+      "import": "Générer des questions"
     },
     "image": {
       "title": "Importer une image (OCR)",
-      "description": "Sélectionnez une image contenant du texte",
+      "description": "Extrayez le texte d'une image pour générer des questions",
       "select": "Choisir une image",
+      "processing": "OCR en cours...",
+      "confidence": "Confiance OCR: {{value}}%",
+      "import": "Générer des questions"
+    },
+    "json": {
+      "title": "Importer un fichier JSON",
+      "description": "Importez une banque de questions exportée précédemment",
+      "select": "Choisir un fichier JSON",
+      "conflictStrategy": "En cas de conflit",
+      "skip": "Ignorer les doublons",
+      "replace": "Remplacer existants",
+      "merge": "Fusionner",
       "import": "Importer"
+    },
+    "validation": {
+      "minCards": "Minimum 4 flashcards requis pour générer des QCM",
+      "emptyContent": "Le contenu est vide",
+      "invalidFormat": "Format non reconnu"
     },
     "success": "Import réussi!",
     "error": "Erreur lors de l'import"
