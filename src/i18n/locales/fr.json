@@ -1,0 +1,143 @@
+{
+  "app": {
+    "title": "Chiropraxie QCM",
+    "subtitle": "Révisions et Quiz"
+  },
+  "nav": {
+    "home": "Accueil",
+    "quiz": "Quiz",
+    "stats": "Statistiques",
+    "import": "Importer",
+    "settings": "Paramètres"
+  },
+  "home": {
+    "welcome": "Bienvenue",
+    "description": "Application de quiz pour révisions en chiropraxie",
+    "startQuiz": "Démarrer un quiz",
+    "continueQuiz": "Continuer",
+    "stats": {
+      "totalQuestions": "Questions totales",
+      "questionsAnswered": "Questions répondues",
+      "successRate": "Taux de réussite",
+      "currentStreak": "Série actuelle"
+    }
+  },
+  "quiz": {
+    "title": "Quiz",
+    "question": "Question {{number}} sur {{total}}",
+    "submit": "Valider",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "finish": "Terminer",
+    "pause": "Pause",
+    "resume": "Reprendre",
+    "timeRemaining": "Temps restant: {{time}}",
+    "selectAnswer": "Sélectionnez une réponse",
+    "selectAnswers": "Sélectionnez une ou plusieurs réponses",
+    "true": "Vrai",
+    "false": "Faux",
+    "explanation": "Explication",
+    "correct": "Correct!",
+    "incorrect": "Incorrect",
+    "score": "Score: {{score}}%",
+    "results": {
+      "title": "Résultats du quiz",
+      "score": "Votre score",
+      "correct": "Bonnes réponses",
+      "incorrect": "Mauvaises réponses",
+      "time": "Temps écoulé",
+      "retry": "Recommencer",
+      "home": "Retour à l'accueil"
+    }
+  },
+  "import": {
+    "title": "Importer des questions",
+    "quizlet": {
+      "title": "Importer depuis Quizlet",
+      "description": "Collez le contenu copié depuis Quizlet",
+      "placeholder": "Terme\\tDéfinition ou Terme | Définition",
+      "import": "Importer"
+    },
+    "pdf": {
+      "title": "Importer un PDF",
+      "description": "Sélectionnez un fichier PDF",
+      "select": "Choisir un fichier",
+      "import": "Importer"
+    },
+    "image": {
+      "title": "Importer une image (OCR)",
+      "description": "Sélectionnez une image contenant du texte",
+      "select": "Choisir une image",
+      "import": "Importer"
+    },
+    "success": "Import réussi!",
+    "error": "Erreur lors de l'import"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "theme": {
+      "title": "Thème",
+      "toulouse": "Toulouse",
+      "nocturne": "Nocturne",
+      "clown": "Clown",
+      "azure": "Azure",
+      "forest": "Forêt",
+      "sunset": "Coucher de soleil",
+      "ocean": "Océan",
+      "medical": "Médical",
+      "lavande": "Lavande",
+      "cupcake": "Cupcake"
+    },
+    "quiz": {
+      "title": "Paramètres du quiz",
+      "questionCount": "Nombre de questions",
+      "showTimer": "Afficher le chronomètre",
+      "timerDuration": "Durée du quiz (minutes)",
+      "shuffleQuestions": "Mélanger les questions",
+      "shuffleChoices": "Mélanger les choix de réponse",
+      "showExplanations": "Afficher les explications"
+    },
+    "ollama": {
+      "title": "Intelligence Artificielle (Ollama)",
+      "enabled": "Activer l'IA",
+      "apiUrl": "URL de l'API",
+      "model": "Modèle",
+      "timeout": "Timeout (ms)",
+      "test": "Tester la connexion",
+      "testing": "Test en cours...",
+      "success": "Connexion réussie!",
+      "error": "Erreur de connexion"
+    },
+    "save": "Enregistrer",
+    "saved": "Paramètres enregistrés!",
+    "error": "Erreur lors de l'enregistrement"
+  },
+  "stats": {
+    "title": "Statistiques",
+    "overview": "Vue d'ensemble",
+    "progress": "Progression",
+    "themes": "Par thème",
+    "difficulty": "Par difficulté",
+    "streak": {
+      "title": "Série quotidienne",
+      "current": "Série actuelle",
+      "longest": "Record",
+      "totalDays": "Jours actifs"
+    }
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "save": "Enregistrer",
+    "close": "Fermer",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "sort": "Trier",
+    "reset": "Réinitialiser"
+  }
+}
