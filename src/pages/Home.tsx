@@ -1,11 +1,17 @@
 import { useTranslation } from 'react-i18next'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/services/db'
 import { createDefaultQuestionBank } from '@/data/defaultBank'
 import { useProgressStore, useSettingsStore } from '@/stores'
 import { Button, Card, StatCard } from '@/components/ui'
+import { 
+  StreakBadge, 
+  StreakCelebration, 
+  StreakWarning,
+  ReviewSection 
+} from '@/components/gamification'
 import {
   Play,
   BookOpen,
@@ -13,12 +19,36 @@ import {
   Flame,
   TrendingUp,
   Award,
+  RefreshCw,
 } from 'lucide-react'
 
 export default function HomePage() {
   const { t } = useTranslation()
-  const { streak, totalQuestionsAnswered, totalCorrect, loadProgress } = useProgressStore()
+  const { 
+    streak, 
+    totalQuestionsAnswered, 
+    totalCorrect, 
+    loadProgress,
+    checkStreakStatus 
+  } = useProgressStore()
   const { loadSettings } = useSettingsStore()
+  
+  // Celebration state
+  const [showCelebration, setShowCelebration] = useState(false)
+  const [celebrationStreak, setCelebrationStreak] = useState(0)
+  const [isNewRecord, setIsNewRecord] = useState(false)
+  
+  // Trigger celebration when streak is a milestone
+  useEffect(() => {
+    if (streak && streak.currentStreak > 0) {
+      const milestones = [3, 7, 14, 30, 60, 100]
+      if (milestones.includes(streak.currentStreak)) {
+        setCelebrationStreak(streak.currentStreak)
+        setIsNewRecord(streak.currentStreak >= streak.longestStreak)
+        setShowCelebration(true)
+      }
+    }
+  }, [streak])
 
   // Load data on mount
   useEffect(() => {
@@ -50,22 +80,61 @@ export default function HomePage() {
       ? Math.round((totalCorrect / totalQuestionsAnswered) * 100)
       : 0
 
+  // Check streak status
+  const streakStatus = checkStreakStatus()
+
   return (
     <div className="space-y-8">
+      {/* Celebration Modal */}
+      {showCelebration && (
+        <StreakCelebration
+          newStreak={celebrationStreak}
+          isRecord={isNewRecord}
+          onComplete={() => setShowCelebration(false)}
+        />
+      )}
+      
+      {/* Streak Warning */}
+      {streakStatus.isAtRisk && streak && streak.currentStreak > 0 && (
+        <StreakWarning 
+          currentStreak={streak.currentStreak} 
+          hoursLeft={streakStatus.hoursUntilMidnight} 
+        />
+      )}
+      
       {/* Hero Section */}
       <section className="text-center py-8">
         <h1 className="text-4xl md:text-5xl font-bold text-primary mb-4">
           {t('app.title')}
         </h1>
-        <p className="text-xl text-base-content/70 mb-8">{t('app.subtitle')}</p>
+        <p className="text-xl text-base-content/70 mb-6">{t('app.subtitle')}</p>
+        
+        {/* Streak Badge */}
+        {streak && (
+          <div className="flex justify-center mb-6">
+            <StreakBadge streak={streak} size="lg" showRecord />
+          </div>
+        )}
 
-        <Link to="/quiz">
-          <Button size="lg">
-            <Play size={24} />
-            {t('home.startQuiz')}
-          </Button>
-        </Link>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link to="/quiz">
+            <Button size="lg">
+              <Play size={24} />
+              {t('home.startQuiz')}
+            </Button>
+          </Link>
+          
+          <Link to="/quiz?mode=review">
+            <Button size="lg" variant="secondary">
+              <RefreshCw size={24} />
+              Mode révision
+            </Button>
+          </Link>
+        </div>
       </section>
+
+      {/* Review Section */}
+      <ReviewSection />
 
       {/* Stats Grid */}
       <section>
@@ -116,8 +185,10 @@ export default function HomePage() {
                   {streak.currentStreak > 1 ? 's' : ''}!
                 </h3>
                 <p className="text-base-content/70">
-                  Continuez comme ça pour battre votre record de{' '}
-                  {streak.longestStreak} jours!
+                  {streak.currentStreak >= streak.longestStreak 
+                    ? "C'est votre meilleur score! Continuez!"
+                    : `Continuez comme ça pour battre votre record de ${streak.longestStreak} jours!`
+                  }
                 </p>
               </div>
             </div>

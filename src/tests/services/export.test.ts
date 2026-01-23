@@ -161,6 +161,7 @@ describe('Import Validation', () => {
         banks: [createMockBank({
           questions: [{
             ...createMockQuestion(),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             type: 'invalid_type' as any
           }]
         })],
@@ -178,6 +179,7 @@ describe('Import Validation', () => {
         banks: [createMockBank({
           questions: [{
             ...createMockQuestion(),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             difficulty: 'super_hard' as any
           }]
         })],

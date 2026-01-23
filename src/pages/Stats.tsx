@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useEffect } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { Link } from 'react-router-dom'
 import { db } from '@/services/db'
 import { useProgressStore } from '@/stores'
 import { Card, StatCard, ProgressBar } from '@/components/ui'
@@ -11,6 +12,10 @@ import {
   Calendar,
   Award,
   BarChart3,
+  RefreshCw,
+  Brain,
+  Clock,
+  CheckCircle2,
 } from 'lucide-react'
 import {
   Chart as ChartJS,
@@ -29,13 +34,21 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend,
 
 export default function StatsPage() {
   const { t } = useTranslation()
-  const { streak, totalQuestionsAnswered, totalCorrect, loadProgress, progressByQuestion } =
-    useProgressStore()
+  const { 
+    streak, 
+    totalQuestionsAnswered, 
+    totalCorrect, 
+    loadProgress, 
+    progressByQuestion,
+    reviewStats,
+    loadReviewStats
+  } = useProgressStore()
 
   // Load progress on mount
   useEffect(() => {
     loadProgress()
-  }, [loadProgress])
+    loadReviewStats()
+  }, [loadProgress, loadReviewStats])
 
   // Load questions for theme stats
   const questions = useLiveQuery(() => db.questions.toArray(), [])
@@ -176,6 +189,70 @@ export default function StatsPage() {
             </div>
           </div>
         </Card>
+      </section>
+
+      {/* Spaced Repetition Stats */}
+      <section>
+        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <Brain size={24} />
+          Révision espacée (SM-2)
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+          <StatCard
+            title="À réviser aujourd'hui"
+            value={(reviewStats?.dueToday || 0) + (reviewStats?.overdue || 0)}
+            icon={<Clock size={24} />}
+            variant={reviewStats?.overdue ? 'error' : 'primary'}
+          />
+          <StatCard
+            title="En retard"
+            value={reviewStats?.overdue || 0}
+            icon={<RefreshCw size={24} />}
+            variant="error"
+          />
+          <StatCard
+            title="À venir"
+            value={reviewStats?.upcoming || 0}
+            icon={<Calendar size={24} />}
+            variant="secondary"
+          />
+          <StatCard
+            title="Maîtrisées"
+            value={reviewStats?.mastered || 0}
+            description="Intervalle ≥ 21 jours"
+            icon={<CheckCircle2 size={24} />}
+            variant="success"
+          />
+        </div>
+        
+        {/* Mastery Progress */}
+        {reviewStats && reviewStats.totalReviewed > 0 && (
+          <Card>
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between mb-2">
+                  <span className="font-medium">Progression vers la maîtrise</span>
+                  <span className="text-sm text-base-content/70">
+                    {reviewStats.mastered} / {reviewStats.totalReviewed} questions
+                  </span>
+                </div>
+                <ProgressBar 
+                  value={Math.round((reviewStats.mastered / reviewStats.totalReviewed) * 100)} 
+                  variant="success"
+                />
+              </div>
+              
+              {(reviewStats.dueToday > 0 || reviewStats.overdue > 0) && (
+                <div className="flex justify-center pt-2">
+                  <Link to="/quiz?mode=review" className="btn btn-primary gap-2">
+                    <RefreshCw size={20} />
+                    Réviser maintenant ({reviewStats.dueToday + reviewStats.overdue})
+                  </Link>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
       </section>
 
       {/* Charts */}
