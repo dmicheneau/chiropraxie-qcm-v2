@@ -47,7 +47,8 @@
       "incorrect": "Mauvaises réponses",
       "time": "Temps écoulé",
       "retry": "Recommencer",
-      "home": "Retour à l'accueil"
+      "home": "Retour à l'accueil",
+      "review": "Revoir les erreurs"
     }
   },
   "import": {
@@ -75,8 +76,9 @@
   },
   "settings": {
     "title": "Paramètres",
-    "theme": {
-      "title": "Thème",
+    "themes": {
+      "title": "Thème visuel",
+      "description": "Choisissez un thème pour personnaliser l'apparence de l'application",
       "toulouse": "Toulouse",
       "nocturne": "Nocturne",
       "clown": "Clown",
@@ -90,23 +92,30 @@
     },
     "quiz": {
       "title": "Paramètres du quiz",
-      "questionCount": "Nombre de questions",
+      "defaultCount": "Nombre de questions par défaut",
       "showTimer": "Afficher le chronomètre",
-      "timerDuration": "Durée du quiz (minutes)",
+      "timerDuration": "Durée du quiz",
       "shuffleQuestions": "Mélanger les questions",
       "shuffleChoices": "Mélanger les choix de réponse",
-      "showExplanations": "Afficher les explications"
+      "showExplanations": "Afficher les explications après validation"
     },
     "ollama": {
       "title": "Intelligence Artificielle (Ollama)",
-      "enabled": "Activer l'IA",
-      "apiUrl": "URL de l'API",
-      "model": "Modèle",
-      "timeout": "Timeout (ms)",
+      "info": "Ollama permet de générer des questions avec l'IA locale. Nécessite Ollama installé sur votre machine.",
+      "enable": "Activer l'IA locale",
+      "apiUrl": "URL de l'API Ollama",
+      "model": "Modèle de langage",
+      "timeout": "Délai d'attente",
       "test": "Tester la connexion",
       "testing": "Test en cours...",
       "success": "Connexion réussie!",
       "error": "Erreur de connexion"
+    },
+    "data": {
+      "title": "Gestion des données",
+      "description": "Exportez vos données pour les sauvegarder ou les partager. Importez un fichier JSON pour restaurer vos données.",
+      "export": "Exporter les données",
+      "import": "Importer des données"
     },
     "save": "Enregistrer",
     "saved": "Paramètres enregistrés!",

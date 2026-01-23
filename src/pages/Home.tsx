@@ -1,119 +1,191 @@
 import { useTranslation } from 'react-i18next'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '@/services/db'
 import { createDefaultQuestionBank } from '@/data/defaultBank'
-import type { QuestionBank } from '@/types'
+import { useProgressStore, useSettingsStore } from '@/stores'
+import { Button, Card, StatCard } from '@/components/ui'
+import {
+  Play,
+  BookOpen,
+  Target,
+  Flame,
+  TrendingUp,
+  Award,
+} from 'lucide-react'
 
 export default function HomePage() {
   const { t } = useTranslation()
-  const [bank, setBank] = useState<QuestionBank | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { streak, totalQuestionsAnswered, totalCorrect, loadProgress } = useProgressStore()
+  const { loadSettings } = useSettingsStore()
 
+  // Load data on mount
   useEffect(() => {
-    async function loadOrCreateBank() {
-      try {
-        // Vérifier si la banque par défaut existe
-        let existingBank = await db.banks.get('default')
+    loadProgress()
+    loadSettings()
+  }, [loadProgress, loadSettings])
 
-        if (!existingBank) {
-          // Créer et sauvegarder la banque par défaut
-          const defaultBank = createDefaultQuestionBank()
-          await db.banks.add(defaultBank)
+  // Load question bank
+  const bank = useLiveQuery(async () => {
+    let existingBank = await db.banks.get('default')
 
-          // Ajouter les questions à la table questions
-          for (const question of defaultBank.questions) {
-            await db.questions.add(question)
-          }
+    if (!existingBank) {
+      const defaultBank = createDefaultQuestionBank()
+      await db.banks.add(defaultBank)
 
-          existingBank = defaultBank
-        }
-
-        setBank(existingBank)
-      } catch (error) {
-        console.error('Error loading question bank:', error)
-      } finally {
-        setLoading(false)
+      for (const question of defaultBank.questions) {
+        await db.questions.add(question)
       }
+
+      existingBank = defaultBank
     }
 
-    loadOrCreateBank()
+    return existingBank
   }, [])
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
-      </div>
-    )
-  }
+  // Calculate success rate
+  const successRate =
+    totalQuestionsAnswered > 0
+      ? Math.round((totalCorrect / totalQuestionsAnswered) * 100)
+      : 0
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <header className="text-center mb-12">
-        <h1 className="text-5xl font-bold text-primary mb-4">{t('app.title')}</h1>
-        <p className="text-xl text-base-content opacity-70">{t('app.subtitle')}</p>
-      </header>
+    <div className="space-y-8">
+      {/* Hero Section */}
+      <section className="text-center py-8">
+        <h1 className="text-4xl md:text-5xl font-bold text-primary mb-4">
+          {t('app.title')}
+        </h1>
+        <p className="text-xl text-base-content/70 mb-8">{t('app.subtitle')}</p>
 
-      {/* Welcome Card */}
-      <div className="card bg-base-200 shadow-xl max-w-2xl mx-auto">
-        <div className="card-body">
-          <h2 className="card-title text-3xl mb-4">{t('home.welcome')}</h2>
-          <p className="text-lg mb-6">{t('home.description')}</p>
+        <Link to="/quiz">
+          <Button size="lg">
+            <Play size={24} />
+            {t('home.startQuiz')}
+          </Button>
+        </Link>
+      </section>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="stat bg-base-100 rounded-lg">
-              <div className="stat-title">{t('home.stats.totalQuestions')}</div>
-              <div className="stat-value text-primary">{bank?.metadata.totalQuestions || 0}</div>
-            </div>
-            <div className="stat bg-base-100 rounded-lg">
-              <div className="stat-title">{t('home.stats.questionsAnswered')}</div>
-              <div className="stat-value text-secondary">0</div>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="card-actions justify-center mt-6">
-            <button className="btn btn-primary btn-lg">{t('home.startQuiz')}</button>
-          </div>
+      {/* Stats Grid */}
+      <section>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard
+            title={t('home.stats.totalQuestions')}
+            value={bank?.metadata.totalQuestions || 0}
+            icon={<BookOpen size={24} />}
+            variant="primary"
+          />
+          <StatCard
+            title={t('home.stats.questionsAnswered')}
+            value={totalQuestionsAnswered}
+            icon={<Target size={24} />}
+            variant="secondary"
+          />
+          <StatCard
+            title={t('home.stats.successRate')}
+            value={`${successRate}%`}
+            icon={<TrendingUp size={24} />}
+            variant="accent"
+          />
+          <StatCard
+            title={t('home.stats.currentStreak')}
+            value={streak?.currentStreak || 0}
+            description={
+              streak?.longestStreak
+                ? `Record: ${streak.longestStreak} jours`
+                : undefined
+            }
+            icon={<Flame size={24} />}
+            variant="primary"
+          />
         </div>
-      </div>
+      </section>
 
-      {/* Themes Preview */}
-      <div className="mt-12 text-center">
-        <h3 className="text-2xl font-bold mb-6">Thèmes disponibles</h3>
-        <div className="flex flex-wrap justify-center gap-4">
-          {[
-            'toulouse',
-            'nocturne',
-            'clown',
-            'azure',
-            'forest',
-            'sunset',
-            'ocean',
-            'medical',
-            'lavande',
-            'cupcake',
-          ].map(theme => (
-            <button
-              key={theme}
-              className="btn btn-outline"
-              onClick={() => {
-                document.documentElement.setAttribute('data-theme', theme)
-              }}
-            >
-              {theme}
-            </button>
-          ))}
+      {/* Streak Motivation */}
+      {streak && streak.currentStreak > 0 && (
+        <section>
+          <Card className="bg-gradient-to-r from-primary/20 to-secondary/20">
+            <div className="flex items-center gap-4">
+              <div className="text-6xl">
+                <Flame className="text-primary" size={48} />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold">
+                  {streak.currentStreak} jour{streak.currentStreak > 1 ? 's' : ''} consécutif
+                  {streak.currentStreak > 1 ? 's' : ''}!
+                </h3>
+                <p className="text-base-content/70">
+                  Continuez comme ça pour battre votre record de{' '}
+                  {streak.longestStreak} jours!
+                </p>
+              </div>
+            </div>
+          </Card>
+        </section>
+      )}
+
+      {/* Quick Actions */}
+      <section>
+        <h2 className="text-2xl font-bold mb-4">Actions rapides</h2>
+        <div className="grid md:grid-cols-3 gap-4">
+          <Link to="/quiz">
+            <Card className="hover:shadow-2xl transition-shadow cursor-pointer h-full">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-primary/20 rounded-lg">
+                  <Play size={24} className="text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Quiz rapide</h3>
+                  <p className="text-sm text-base-content/70">20 questions</p>
+                </div>
+              </div>
+            </Card>
+          </Link>
+
+          <Link to="/stats">
+            <Card className="hover:shadow-2xl transition-shadow cursor-pointer h-full">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-secondary/20 rounded-lg">
+                  <TrendingUp size={24} className="text-secondary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Statistiques</h3>
+                  <p className="text-sm text-base-content/70">Voir ma progression</p>
+                </div>
+              </div>
+            </Card>
+          </Link>
+
+          <Link to="/settings">
+            <Card className="hover:shadow-2xl transition-shadow cursor-pointer h-full">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-accent/20 rounded-lg">
+                  <Award size={24} className="text-accent" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Personnaliser</h3>
+                  <p className="text-sm text-base-content/70">Thèmes et options</p>
+                </div>
+              </div>
+            </Card>
+          </Link>
         </div>
-      </div>
+      </section>
 
-      {/* Footer */}
-      <footer className="text-center mt-12 text-base-content opacity-50">
-        <p>Chiropraxie QCM V2 - Offline PWA avec IA locale</p>
-        <p className="text-sm mt-2">Phase 0: Setup Complete ✓</p>
-      </footer>
+      {/* Themes Info */}
+      {bank && (
+        <section>
+          <h2 className="text-2xl font-bold mb-4">Thèmes disponibles</h2>
+          <div className="flex flex-wrap gap-2">
+            {bank.metadata.themes.map(theme => (
+              <span key={theme} className="badge badge-primary badge-lg">
+                {theme}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   )
 }
