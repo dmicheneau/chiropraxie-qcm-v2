@@ -12,7 +12,7 @@ import {
   Sparkles
 } from 'lucide-react'
 import { Card, Button } from '@/components/ui'
-import { FlashcardPreview, QuestionPreview, AIGenerateTab } from '@/components/import'
+import { FlashcardPreview, QuestionPreview, AIGenerateTab, PDFImportTab, ImageImportTab, JSONImportTab } from '@/components/import'
 import {
   parseQuizletExport,
   convertFlashcardsToQuestions,
@@ -300,29 +300,23 @@ export default function Import() {
         <button
           className={`tab gap-2 ${activeTab === 'pdf' ? 'tab-active' : ''}`}
           onClick={() => handleTabChange('pdf')}
-          disabled
         >
           <FileText size={16} />
           {t('import.tabs.pdf')}
-          <span className="badge badge-xs">Bientôt</span>
         </button>
         <button
           className={`tab gap-2 ${activeTab === 'image' ? 'tab-active' : ''}`}
           onClick={() => handleTabChange('image')}
-          disabled
         >
           <Image size={16} />
           {t('import.tabs.image')}
-          <span className="badge badge-xs">Bientôt</span>
         </button>
         <button
           className={`tab gap-2 ${activeTab === 'json' ? 'tab-active' : ''}`}
           onClick={() => handleTabChange('json')}
-          disabled
         >
           <FileJson size={16} />
           {t('import.tabs.json')}
-          <span className="badge badge-xs">Bientôt</span>
         </button>
       </div>
 
@@ -643,17 +637,14 @@ export default function Import() {
       {/* AI Generation Tab */}
       {activeTab === 'ai' && <AIGenerateTab />}
 
-      {/* Other tabs - Coming soon */}
-      {activeTab !== 'quizlet' && activeTab !== 'ai' && (
-        <Card title="Bientôt disponible">
-          <div className="text-center py-8">
-            <div className="text-5xl mb-4">🚧</div>
-            <p className="text-base-content/70">
-              Cette fonctionnalité sera disponible dans une prochaine mise à jour.
-            </p>
-          </div>
-        </Card>
-      )}
+      {/* PDF Import Tab */}
+      {activeTab === 'pdf' && <PDFImportTab />}
+
+      {/* Image Import Tab */}
+      {activeTab === 'image' && <ImageImportTab />}
+
+      {/* JSON Import Tab */}
+      {activeTab === 'json' && <JSONImportTab />}
     </div>
   )
 }

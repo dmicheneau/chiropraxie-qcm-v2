@@ -1,3 +1,6 @@
 export { default as FlashcardPreview } from './FlashcardPreview'
 export { default as QuestionPreview } from './QuestionPreview'
 export { AIGenerateTab } from './AIGenerateTab'
+export { PDFImportTab } from './PDFImportTab'
+export { ImageImportTab } from './ImageImportTab'
+export { JSONImportTab } from './JSONImportTab'
