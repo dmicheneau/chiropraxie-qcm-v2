@@ -55,9 +55,33 @@
     "title": "Importer des questions",
     "tabs": {
       "quizlet": "Quizlet",
+      "ai": "Générer avec IA",
       "pdf": "PDF",
       "image": "Image",
       "json": "Fichier JSON"
+    },
+    "ai": {
+      "title": "Générer des questions avec l'IA",
+      "description": "Collez du texte source (notes de cours, paragraphes...) et l'IA générera des questions QCM pertinentes.",
+      "sourceText": "Texte source",
+      "sourcePlaceholder": "Collez ici votre texte source (minimum 50 caractères)...",
+      "charCount": "{{count}} caractères",
+      "minChars": "Minimum 50 caractères requis",
+      "questionCount": "Nombre de questions",
+      "theme": "Thème",
+      "subtheme": "Sous-thème (optionnel)",
+      "subthemePlaceholder": "Ex: Système nerveux",
+      "generate": "Générer {{count}} questions",
+      "generating": "Génération...",
+      "generated": "Questions générées ({{count}})",
+      "parseWarnings": "Avertissements lors du parsing",
+      "noQuestions": "Aucune question n'a pu être générée. Vérifiez le texte source.",
+      "selectAll": "Tout sélectionner",
+      "deselectAll": "Tout désélectionner",
+      "selectedCount": "{{count}} question(s) sélectionnée(s)",
+      "addToBank": "Ajouter à la banque",
+      "saving": "Sauvegarde...",
+      "saveSuccess": "{{count}} question(s) ajoutée(s) à la banque avec succès!"
     },
     "quizlet": {
       "title": "Importer depuis Quizlet",

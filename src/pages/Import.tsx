@@ -8,10 +8,11 @@ import {
   AlertCircle,
   CheckCircle,
   ArrowRight,
-  Plus
+  Plus,
+  Sparkles
 } from 'lucide-react'
 import { Card, Button } from '@/components/ui'
-import { FlashcardPreview, QuestionPreview } from '@/components/import'
+import { FlashcardPreview, QuestionPreview, AIGenerateTab } from '@/components/import'
 import {
   parseQuizletExport,
   convertFlashcardsToQuestions,
@@ -22,7 +23,7 @@ import {
 import { useBankStore } from '@/stores'
 import type { Question, Difficulty } from '@/types'
 
-type ImportTab = 'quizlet' | 'pdf' | 'image' | 'json'
+type ImportTab = 'quizlet' | 'ai' | 'pdf' | 'image' | 'json'
 type ImportStep = 'input' | 'preview' | 'convert' | 'save'
 
 // Available themes for questions
@@ -288,6 +289,13 @@ export default function Import() {
         >
           <ClipboardPaste size={16} />
           {t('import.tabs.quizlet')}
+        </button>
+        <button
+          className={`tab gap-2 ${activeTab === 'ai' ? 'tab-active' : ''}`}
+          onClick={() => handleTabChange('ai')}
+        >
+          <Sparkles size={16} />
+          {t('import.tabs.ai', 'IA')}
         </button>
         <button
           className={`tab gap-2 ${activeTab === 'pdf' ? 'tab-active' : ''}`}
@@ -632,8 +640,11 @@ export default function Import() {
         </div>
       )}
 
+      {/* AI Generation Tab */}
+      {activeTab === 'ai' && <AIGenerateTab />}
+
       {/* Other tabs - Coming soon */}
-      {activeTab !== 'quizlet' && (
+      {activeTab !== 'quizlet' && activeTab !== 'ai' && (
         <Card title="Bientôt disponible">
           <div className="text-center py-8">
             <div className="text-5xl mb-4">🚧</div>

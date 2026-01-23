@@ -1,0 +1,213 @@
+/**
+ * Question Generation Service
+ * High-level service for generating questions using Ollama
+ */
+
+import { ollamaService } from './service'
+import { generateQuestionsPrompt, generateTagsPrompt, generateExplanationPrompt } from './prompts'
+import {
+  parseAIQuestions,
+  convertToQuestions,
+  parseTags,
+  parseExplanation,
+  type AIGeneratedQuestion
+} from './parser'
+import type { Question } from '@/types'
+
+export interface GenerationOptions {
+  theme: string
+  subtheme?: string
+  count?: number
+}
+
+export interface GenerationResult {
+  questions: Question[]
+  aiQuestions: AIGeneratedQuestion[]
+  parseErrors: string[]
+  generationTime: number
+  rawResponse: string
+}
+
+export interface GenerationProgress {
+  status: 'starting' | 'generating' | 'parsing' | 'complete' | 'error'
+  message: string
+  progress?: number
+}
+
+/**
+ * Generate questions from source text using AI
+ */
+export async function generateQuestions(
+  sourceText: string,
+  options: GenerationOptions,
+  onProgress?: (progress: GenerationProgress) => void
+): Promise<GenerationResult> {
+  const startTime = performance.now()
+  const count = options.count ?? 10
+
+  try {
+    // Notify starting
+    onProgress?.({
+      status: 'starting',
+      message: 'Connexion à Ollama...',
+      progress: 0
+    })
+
+    // Check if Ollama is available
+    const available = await ollamaService.isAvailable()
+    if (!available) {
+      throw new Error(
+        'Ollama n\'est pas disponible. Vérifiez qu\'il est démarré avec "ollama serve".'
+      )
+    }
+
+    // Generate prompt
+    const prompt = generateQuestionsPrompt(sourceText, count)
+
+    // Notify generating
+    onProgress?.({
+      status: 'generating',
+      message: `Génération de ${count} questions en cours...`,
+      progress: 20
+    })
+
+    // Generate response
+    const response = await ollamaService.generate(prompt)
+
+    // Notify parsing
+    onProgress?.({
+      status: 'parsing',
+      message: 'Analyse des questions générées...',
+      progress: 80
+    })
+
+    // Parse response
+    const parsed = parseAIQuestions(response)
+
+    // Convert to Question objects
+    const questions = convertToQuestions(parsed.questions, options.theme, options.subtheme)
+
+    // Notify complete
+    onProgress?.({
+      status: 'complete',
+      message: `${questions.length} questions générées avec succès`,
+      progress: 100
+    })
+
+    return {
+      questions,
+      aiQuestions: parsed.questions,
+      parseErrors: parsed.parseErrors,
+      generationTime: performance.now() - startTime,
+      rawResponse: response
+    }
+  } catch (error) {
+    onProgress?.({
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Erreur inconnue'
+    })
+
+    throw error
+  }
+}
+
+/**
+ * Generate tags for a question using AI
+ */
+export async function generateTagsForQuestion(questionText: string): Promise<string[]> {
+  try {
+    const prompt = generateTagsPrompt(questionText)
+    const response = await ollamaService.generate(prompt, { maxTokens: 200 })
+    return parseTags(response)
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Generate explanation for a question using AI
+ */
+export async function generateExplanationForQuestion(
+  questionText: string,
+  correctAnswer: string,
+  incorrectAnswers: string[]
+): Promise<string | null> {
+  try {
+    const prompt = generateExplanationPrompt(questionText, correctAnswer, incorrectAnswers)
+    const response = await ollamaService.generate(prompt, { maxTokens: 300 })
+    return parseExplanation(response)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Batch generate explanations for questions without them
+ */
+export async function generateMissingExplanations(
+  questions: Question[],
+  onProgress?: (current: number, total: number) => void
+): Promise<Question[]> {
+  const result: Question[] = []
+
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i]
+
+    if (q.explanation) {
+      result.push(q)
+      continue
+    }
+
+    onProgress?.(i + 1, questions.length)
+
+    const correctChoice = q.choices?.find(c => c.id === q.correctAnswer)
+    const incorrectChoices = q.choices?.filter(c => c.id !== q.correctAnswer) || []
+
+    if (correctChoice) {
+      const explanation = await generateExplanationForQuestion(
+        q.text,
+        correctChoice.text,
+        incorrectChoices.map(c => c.text)
+      )
+
+      result.push({
+        ...q,
+        explanation: explanation || undefined
+      })
+    } else {
+      result.push(q)
+    }
+  }
+
+  return result
+}
+
+/**
+ * Batch generate tags for questions without them
+ */
+export async function generateMissingTags(
+  questions: Question[],
+  onProgress?: (current: number, total: number) => void
+): Promise<Question[]> {
+  const result: Question[] = []
+
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i]
+
+    if (q.tags && q.tags.length > 0) {
+      result.push(q)
+      continue
+    }
+
+    onProgress?.(i + 1, questions.length)
+
+    const tags = await generateTagsForQuestion(q.text)
+
+    result.push({
+      ...q,
+      tags: tags.length > 0 ? tags : q.tags
+    })
+  }
+
+  return result
+}
