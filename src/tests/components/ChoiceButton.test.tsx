@@ -23,17 +23,17 @@ describe('ChoiceButton', () => {
 
   it('applies outline style when not selected', () => {
     render(<ChoiceButton {...defaultProps} />)
-    expect(screen.getByRole('button')).toHaveClass('btn-outline')
+    expect(screen.getByRole('radio')).toHaveClass('btn-outline')
   })
 
   it('applies primary style when selected', () => {
     render(<ChoiceButton {...defaultProps} selected={true} />)
-    expect(screen.getByRole('button')).toHaveClass('btn-primary')
+    expect(screen.getByRole('radio')).toHaveClass('btn-primary')
   })
 
   it('applies success style for correct answer when showing result', () => {
     render(<ChoiceButton {...defaultProps} showResult={true} isCorrect={true} />)
-    expect(screen.getByRole('button')).toHaveClass('btn-success')
+    expect(screen.getByRole('radio')).toHaveClass('btn-success')
   })
 
   it('applies error style for incorrect user answer when showing result', () => {
@@ -45,7 +45,7 @@ describe('ChoiceButton', () => {
         isUserAnswer={true}
       />
     )
-    expect(screen.getByRole('button')).toHaveClass('btn-error')
+    expect(screen.getByRole('radio')).toHaveClass('btn-error')
   })
 
   it('shows checkmark for correct answer when showing result', () => {
@@ -77,18 +77,18 @@ describe('ChoiceButton', () => {
     const onClick = vi.fn()
     render(<ChoiceButton {...defaultProps} onClick={onClick} />)
     
-    await user.click(screen.getByRole('button'))
+    await user.click(screen.getByRole('radio'))
     expect(onClick).toHaveBeenCalledTimes(1)
   })
 
   it('is disabled when disabled prop is true', () => {
     render(<ChoiceButton {...defaultProps} disabled={true} />)
-    expect(screen.getByRole('button')).toBeDisabled()
+    expect(screen.getByRole('radio')).toBeDisabled()
   })
 
   it('is disabled when showResult is true', () => {
     render(<ChoiceButton {...defaultProps} showResult={true} />)
-    expect(screen.getByRole('button')).toBeDisabled()
+    expect(screen.getByRole('radio')).toBeDisabled()
   })
 
   it('applies ghost style with opacity for non-answer choices when showing result', () => {
@@ -100,6 +100,6 @@ describe('ChoiceButton', () => {
         isUserAnswer={false}
       />
     )
-    expect(screen.getByRole('button')).toHaveClass('btn-ghost', 'opacity-50')
+    expect(screen.getByRole('radio')).toHaveClass('btn-ghost', 'opacity-50')
   })
 })

@@ -20,14 +20,20 @@ export default function BottomNav() {
   }
 
   return (
-    <nav className="btm-nav btm-nav-md md:hidden bg-base-100 border-t border-base-300">
+    <nav 
+      className="btm-nav btm-nav-md md:hidden bg-base-100 border-t border-base-300"
+      role="navigation"
+      aria-label="Navigation principale"
+    >
       {navItems.map(item => (
         <Link
           key={item.path}
           to={item.path}
           className={isActive(item.path) ? 'active text-primary' : 'text-base-content'}
+          aria-current={isActive(item.path) ? 'page' : undefined}
+          aria-label={item.label}
         >
-          <item.icon size={20} />
+          <item.icon size={20} aria-hidden="true" />
           <span className="btm-nav-label text-xs">{item.label}</span>
         </Link>
       ))}

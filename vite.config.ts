@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'logo192.png', 'logo512.png'],
+      includeAssets: ['favicon.svg', 'logo.svg', 'logo192.png', 'logo512.png'],
       manifest: {
         name: 'Chiropraxie QCM - Révisions',
         short_name: 'QCM Chiro',
@@ -21,6 +21,12 @@ export default defineConfig({
         scope: '/',
         start_url: '/',
         icons: [
+          {
+            src: 'logo.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
+            purpose: 'any'
+          },
           {
             src: 'logo192.png',
             sizes: '192x192',
@@ -71,13 +77,16 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    chunkSizeWarningLimit: 600, // Increase limit for heavy vendor chunks
     rollupOptions: {
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'state-vendor': ['zustand', '@tanstack/react-query'],
           'db-vendor': ['dexie', 'dexie-react-hooks'],
-          'ui-vendor': ['lucide-react', 'chart.js', 'react-chartjs-2']
+          'ui-vendor': ['lucide-react', 'chart.js', 'react-chartjs-2'],
+          'pdf-vendor': ['pdfjs-dist'],
+          'ocr-vendor': ['tesseract.js']
         }
       }
     }

@@ -99,6 +99,7 @@ export interface UserSettings {
   id: string // Toujours 'default'
   theme: ThemeName
   language: 'fr' // Pour l'instant, uniquement français
+  hasSeenOnboarding: boolean // A vu l'écran d'introduction
   quizSettings: {
     defaultQuestionCount: number
     showTimer: boolean

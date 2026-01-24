@@ -44,6 +44,7 @@ export async function initializeDatabase() {
         id: 'default',
         theme: 'toulouse',
         language: 'fr',
+        hasSeenOnboarding: false,
         quizSettings: {
           defaultQuestionCount: 20,
           showTimer: true,

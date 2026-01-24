@@ -72,7 +72,7 @@ describe('Modal', () => {
       </Modal>
     )
     
-    await user.click(screen.getByRole('button', { name: 'Fermer', hidden: true }))
+    await user.click(screen.getByRole('button', { name: 'Fermer la fenêtre', hidden: true }))
     expect(onClose).toHaveBeenCalled()
   })
 

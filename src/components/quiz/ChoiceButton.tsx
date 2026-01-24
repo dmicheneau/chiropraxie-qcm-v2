@@ -7,6 +7,7 @@ interface ChoiceButtonProps {
   isCorrect: boolean
   isUserAnswer: boolean
   onClick: () => void
+  questionId?: string
 }
 
 export default function ChoiceButton({
@@ -18,6 +19,7 @@ export default function ChoiceButton({
   isCorrect,
   isUserAnswer,
   onClick,
+  questionId,
 }: ChoiceButtonProps) {
   const getButtonClass = () => {
     const baseClass = 'btn btn-lg justify-start text-left h-auto py-4 px-6 w-full'
@@ -48,11 +50,28 @@ export default function ChoiceButton({
     return id
   }
 
+  // Accessibility: describe the state of the choice
+  const getAriaLabel = () => {
+    const baseLabel = `Option ${id}: ${text}`
+    if (showResult) {
+      if (isCorrect) return `${baseLabel} - Bonne réponse`
+      if (isUserAnswer && !isCorrect) return `${baseLabel} - Mauvaise réponse (votre choix)`
+      return baseLabel
+    }
+    if (selected) return `${baseLabel} - Sélectionné`
+    return baseLabel
+  }
+
   return (
     <button
       className={getButtonClass()}
       onClick={onClick}
       disabled={disabled || showResult}
+      role="radio"
+      aria-checked={selected}
+      aria-label={getAriaLabel()}
+      aria-describedby={questionId ? `question-${questionId}` : undefined}
+      tabIndex={disabled || showResult ? -1 : 0}
     >
       <span className="flex items-center gap-4 w-full">
         <span
@@ -67,6 +86,7 @@ export default function ChoiceButton({
               ? 'bg-primary-content text-primary'
               : 'bg-base-300'
           }`}
+          aria-hidden="true"
         >
           {getPrefix()}
         </span>

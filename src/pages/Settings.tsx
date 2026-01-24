@@ -15,6 +15,13 @@ import {
   Shuffle,
   Clock,
   HelpCircle,
+  BookOpen,
+  Brain,
+  Flame,
+  FileText,
+  Image,
+  Sparkles,
+  RotateCcw,
 } from 'lucide-react'
 
 // Theme configuration with preview colors
@@ -412,6 +419,170 @@ export default function SettingsPage() {
             <div className="stat">
               <div className="stat-title">Progression</div>
               <div className="stat-value text-accent">{progress?.length || 0}</div>
+            </div>
+          </div>
+        </Card>
+      </section>
+
+      {/* Help Section */}
+      <section>
+        <Card
+          title={
+            <span className="flex items-center gap-2">
+              <HelpCircle size={20} />
+              Aide & Documentation
+            </span>
+          }
+        >
+          <div className="space-y-6">
+            {/* Quick Start Guide */}
+            <div className="collapse collapse-arrow bg-base-200">
+              <input type="radio" name="help-accordion" defaultChecked />
+              <div className="collapse-title font-medium flex items-center gap-2">
+                <BookOpen size={18} className="text-primary" />
+                Comment utiliser l'application
+              </div>
+              <div className="collapse-content text-base-content/80">
+                <ol className="list-decimal list-inside space-y-2 mt-2">
+                  <li><strong>Accueil:</strong> Lancez un quiz rapide, accédez au mode révision ou consultez vos stats.</li>
+                  <li><strong>Quiz:</strong> Sélectionnez un thème et le nombre de questions, puis répondez.</li>
+                  <li><strong>Statistiques:</strong> Suivez votre progression, streak et taux de réussite.</li>
+                  <li><strong>Import:</strong> Ajoutez vos propres questions depuis Quizlet, PDF ou images.</li>
+                </ol>
+              </div>
+            </div>
+
+            {/* Import Guide */}
+            <div className="collapse collapse-arrow bg-base-200">
+              <input type="radio" name="help-accordion" />
+              <div className="collapse-title font-medium flex items-center gap-2">
+                <Upload size={18} className="text-secondary" />
+                Importer des questions
+              </div>
+              <div className="collapse-content text-base-content/80">
+                <div className="space-y-4 mt-2">
+                  <div className="flex items-start gap-3">
+                    <FileText size={20} className="text-info flex-shrink-0 mt-1" />
+                    <div>
+                      <h4 className="font-semibold">Depuis Quizlet</h4>
+                      <p className="text-sm">Copiez-collez vos flashcards depuis Quizlet (format Terme → Définition).</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <FileText size={20} className="text-error flex-shrink-0 mt-1" />
+                    <div>
+                      <h4 className="font-semibold">Depuis un PDF</h4>
+                      <p className="text-sm">Importez un PDF de cours. Le texte sera extrait automatiquement.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Image size={20} className="text-warning flex-shrink-0 mt-1" />
+                    <div>
+                      <h4 className="font-semibold">Depuis une image</h4>
+                      <p className="text-sm">Prenez une photo de vos notes. L'OCR extraira le texte (français).</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* AI Generation Guide */}
+            <div className="collapse collapse-arrow bg-base-200">
+              <input type="radio" name="help-accordion" />
+              <div className="collapse-title font-medium flex items-center gap-2">
+                <Sparkles size={18} className="text-accent" />
+                Génération IA (Ollama)
+              </div>
+              <div className="collapse-content text-base-content/80">
+                <div className="space-y-3 mt-2">
+                  <p>
+                    L'IA locale génère des QCM à partir de vos contenus importés. 
+                    <strong> Aucune donnée n'est envoyée sur internet.</strong>
+                  </p>
+                  <div className="alert alert-info">
+                    <Info size={16} />
+                    <div>
+                      <h4 className="font-semibold">Installation d'Ollama:</h4>
+                      <ol className="list-decimal list-inside text-sm mt-1">
+                        <li>Téléchargez Ollama depuis <code>ollama.com</code></li>
+                        <li>Installez le modèle: <code>ollama pull mistral:7b-instruct</code></li>
+                        <li>Lancez Ollama: <code>ollama serve</code></li>
+                        <li>Activez l'IA dans les paramètres ci-dessus</li>
+                      </ol>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Spaced Repetition Guide */}
+            <div className="collapse collapse-arrow bg-base-200">
+              <input type="radio" name="help-accordion" />
+              <div className="collapse-title font-medium flex items-center gap-2">
+                <Brain size={18} className="text-info" />
+                Mode Révision (SM-2)
+              </div>
+              <div className="collapse-content text-base-content/80">
+                <div className="space-y-3 mt-2">
+                  <p>
+                    Le <strong>mode révision</strong> utilise l'algorithme SM-2 (SuperMemo) 
+                    pour optimiser vos révisions.
+                  </p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Les questions difficiles reviennent plus souvent</li>
+                    <li>Les questions maîtrisées sont espacées progressivement</li>
+                    <li>Le système s'adapte à votre rythme d'apprentissage</li>
+                  </ul>
+                  <div className="flex items-center gap-2 text-sm bg-base-300 p-2 rounded-lg">
+                    <RotateCcw size={16} className="text-primary" />
+                    <span>Accédez au mode révision depuis l'accueil</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Streak Guide */}
+            <div className="collapse collapse-arrow bg-base-200">
+              <input type="radio" name="help-accordion" />
+              <div className="collapse-title font-medium flex items-center gap-2">
+                <Flame size={18} className="text-error" />
+                Streak & Gamification
+              </div>
+              <div className="collapse-content text-base-content/80">
+                <div className="space-y-3 mt-2">
+                  <p>
+                    Maintenez votre <strong>streak</strong> en répondant à au moins 
+                    une question chaque jour!
+                  </p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li><strong>Streak actuel:</strong> Jours consécutifs de pratique</li>
+                    <li><strong>Record:</strong> Votre meilleure série</li>
+                    <li><strong>Jours actifs:</strong> Total de jours de révision</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Offline Mode */}
+            <div className="collapse collapse-arrow bg-base-200">
+              <input type="radio" name="help-accordion" />
+              <div className="collapse-title font-medium flex items-center gap-2">
+                <Download size={18} className="text-success" />
+                Mode hors-ligne
+              </div>
+              <div className="collapse-content text-base-content/80">
+                <div className="space-y-3 mt-2">
+                  <p>
+                    Cette application fonctionne <strong>100% hors-ligne</strong> une fois installée.
+                  </p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Toutes vos données sont stockées localement</li>
+                    <li>Aucun compte requis, aucune synchronisation cloud</li>
+                    <li>Installez l'app depuis le navigateur (PWA)</li>
+                    <li>Exportez vos données pour les sauvegarder</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </Card>

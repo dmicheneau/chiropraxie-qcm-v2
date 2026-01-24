@@ -36,6 +36,7 @@ export default function Button({
   block = false,
   className = '',
   disabled,
+  'aria-label': ariaLabel,
   ...props
 }: ButtonProps) {
   return (
@@ -44,9 +45,17 @@ export default function Button({
         block ? 'btn-block' : ''
       } ${className}`}
       disabled={disabled || loading}
+      aria-label={ariaLabel}
+      aria-busy={loading}
+      aria-disabled={disabled || loading}
       {...props}
     >
-      {loading && <span className="loading loading-spinner loading-sm"></span>}
+      {loading && (
+        <span 
+          className="loading loading-spinner loading-sm" 
+          aria-hidden="true"
+        />
+      )}
       {children}
     </button>
   )

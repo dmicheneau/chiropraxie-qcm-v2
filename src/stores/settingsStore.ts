@@ -5,6 +5,7 @@ import { db } from '@/services/db'
 
 interface SettingsState {
   theme: ThemeName
+  hasSeenOnboarding: boolean
   quizSettings: {
     defaultQuestionCount: number
     showTimer: boolean
@@ -24,6 +25,7 @@ interface SettingsState {
   setTheme: (theme: ThemeName) => void
   setQuizSettings: (settings: Partial<SettingsState['quizSettings']>) => void
   setOllamaSettings: (settings: Partial<SettingsState['ollamaSettings']>) => void
+  markOnboardingComplete: () => void
   loadSettings: () => Promise<void>
   saveSettings: () => Promise<void>
 }
@@ -33,6 +35,7 @@ export const useSettingsStore = create<SettingsState>()(
     (set, get) => ({
       // Initial state
       theme: 'toulouse',
+      hasSeenOnboarding: false,
       quizSettings: {
         defaultQuestionCount: 20,
         showTimer: true,
@@ -69,12 +72,18 @@ export const useSettingsStore = create<SettingsState>()(
         get().saveSettings()
       },
 
+      markOnboardingComplete: () => {
+        set({ hasSeenOnboarding: true })
+        get().saveSettings()
+      },
+
       loadSettings: async () => {
         try {
           const settings = await db.settings.get('default')
           if (settings) {
             set({
               theme: settings.theme,
+              hasSeenOnboarding: settings.hasSeenOnboarding ?? false,
               quizSettings: settings.quizSettings,
               ollamaSettings: settings.ollamaSettings,
             })
@@ -92,6 +101,7 @@ export const useSettingsStore = create<SettingsState>()(
             id: 'default',
             theme: state.theme,
             language: 'fr',
+            hasSeenOnboarding: state.hasSeenOnboarding,
             quizSettings: state.quizSettings,
             ollamaSettings: state.ollamaSettings,
             createdAt: new Date().toISOString(),
@@ -107,6 +117,7 @@ export const useSettingsStore = create<SettingsState>()(
       name: 'chiropraxie-qcm-settings',
       partialize: state => ({
         theme: state.theme,
+        hasSeenOnboarding: state.hasSeenOnboarding,
         quizSettings: state.quizSettings,
         ollamaSettings: state.ollamaSettings,
       }),
