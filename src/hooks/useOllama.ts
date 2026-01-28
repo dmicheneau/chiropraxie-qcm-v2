@@ -20,10 +20,7 @@ export interface UseOllamaReturn {
   isGenerating: boolean
   error: string | null
   generate: (prompt: string) => Promise<string>
-  generateWithProgress: (
-    prompt: string,
-    onProgress: (text: string) => void
-  ) => Promise<string>
+  generateWithProgress: (prompt: string, onProgress: (text: string) => void) => Promise<string>
   checkHealth: () => Promise<OllamaStatus>
   clearError: () => void
 }
@@ -32,7 +29,7 @@ const initialStatus: OllamaStatus = {
   available: false,
   modelInstalled: false,
   models: [],
-  error: null
+  error: null,
 }
 
 export function useOllama(): UseOllamaReturn {
@@ -48,7 +45,7 @@ export function useOllama(): UseOllamaReturn {
   useEffect(() => {
     ollamaService.setConfig({
       endpoint: ollamaSettings.apiUrl,
-      model: ollamaSettings.model
+      model: ollamaSettings.model,
     })
   }, [ollamaSettings.apiUrl, ollamaSettings.model])
 
@@ -61,7 +58,7 @@ export function useOllama(): UseOllamaReturn {
         available: health.available,
         modelInstalled: health.modelInstalled,
         models: health.models,
-        error: health.error || null
+        error: health.error || null,
       }
 
       setStatus(newStatus)
@@ -74,7 +71,7 @@ export function useOllama(): UseOllamaReturn {
         available: false,
         modelInstalled: false,
         models: [],
-        error: errorMessage
+        error: errorMessage,
       }
 
       setStatus(newStatus)
@@ -84,15 +81,13 @@ export function useOllama(): UseOllamaReturn {
     }
   }, [])
 
-  // Initial health check
+  // Initial health check - only if explicitly enabled
+  // Removed automatic health check on mount to avoid intrusive error messages
+  // Users can manually check Ollama status when they want to use AI features
   useEffect(() => {
-    checkHealth().finally(() => setIsLoading(false))
-
-    // Re-check every 30 seconds
-    const interval = setInterval(checkHealth, 30000)
-
-    return () => clearInterval(interval)
-  }, [checkHealth])
+    // Only set loading to false initially
+    setIsLoading(false)
+  }, [])
 
   // Generate function (non-streaming)
   const generate = useCallback(
@@ -169,6 +164,6 @@ export function useOllama(): UseOllamaReturn {
     generate,
     generateWithProgress,
     checkHealth,
-    clearError
+    clearError,
   }
 }

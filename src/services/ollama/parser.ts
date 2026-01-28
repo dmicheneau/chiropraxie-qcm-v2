@@ -23,6 +23,7 @@ export interface ParsedQuestionsResult {
 
 /**
  * Extract JSON from AI response that may contain surrounding text
+ * Includes basic repair for common AI mistakes
  */
 export function extractJSON(text: string): string | null {
   // Try to find JSON object or array in the response
@@ -36,26 +37,60 @@ export function extractJSON(text: string): string | null {
     /\{"explanation"\s*:\s*"[\s\S]*?"\s*\}/,
     // Match object starting with {"score":
     /\{"score"\s*:\s*\d+[\s\S]*?\}/,
+    // Match object starting with {"theme":
+    /\{"theme"\s*:\s*"[\s\S]*?"\s*\}/,
     // Match any JSON object (greedy - use for fallback)
     /\{[\s\S]*\}/,
     // Match any JSON array (for direct arrays like [{...}])
-    /\[[\s\S]*\]/
+    /\[[\s\S]*\]/,
   ]
 
   for (const pattern of patterns) {
     const match = text.match(pattern)
     if (match) {
-      // Try to parse to validate it's proper JSON
+      let jsonStr = match[0]
+
+      // Try to parse as-is first
       try {
-        JSON.parse(match[0])
-        return match[0]
+        JSON.parse(jsonStr)
+        return jsonStr
       } catch {
-        // Continue to next pattern
+        // Try to repair common issues
+        jsonStr = repairJSON(jsonStr)
+        try {
+          JSON.parse(jsonStr)
+          return jsonStr
+        } catch {
+          // Continue to next pattern
+        }
       }
     }
   }
 
   return null
+}
+
+/**
+ * Attempt to repair common JSON issues from AI responses
+ */
+function repairJSON(text: string): string {
+  let repaired = text
+
+  // Fix missing "text": key in choices (common AI mistake)
+  // Pattern: {"id": "D", "Some text"} -> {"id": "D", "text": "Some text"}
+  repaired = repaired.replace(
+    /\{"id"\s*:\s*"([A-D])"\s*,\s*"([^"]+)"\s*\}/g,
+    '{"id": "$1", "text": "$2"}'
+  )
+
+  // Fix trailing commas before closing brackets
+  repaired = repaired.replace(/,\s*\]/g, ']')
+  repaired = repaired.replace(/,\s*\}/g, '}')
+
+  // Fix double quotes issues (escaped quotes that shouldn't be)
+  repaired = repaired.replace(/\\"/g, '"')
+
+  return repaired
 }
 
 /**
@@ -70,8 +105,10 @@ export function parseAIQuestions(response: string): ParsedQuestionsResult {
   if (!jsonStr) {
     return {
       questions: [],
-      parseErrors: ['Impossible d\'extraire le JSON de la réponse IA'],
-      rawResponse: response
+      parseErrors: [
+        "Impossible d'extraire le JSON de la réponse IA. Réponse brute: " + response.slice(0, 200),
+      ],
+      rawResponse: response,
     }
   }
 
@@ -85,7 +122,7 @@ export function parseAIQuestions(response: string): ParsedQuestionsResult {
       return {
         questions: [],
         parseErrors: ['Format de réponse invalide: pas de tableau de questions'],
-        rawResponse: response
+        rawResponse: response,
       }
     }
 
@@ -98,49 +135,91 @@ export function parseAIQuestions(response: string): ParsedQuestionsResult {
         continue
       }
 
-      if (!Array.isArray(q.choices) || q.choices.length !== 4) {
-        parseErrors.push(`Question ${i + 1}: doit avoir exactement 4 choix`)
+      // Be more flexible with choices validation
+      if (!Array.isArray(q.choices)) {
+        parseErrors.push(`Question ${i + 1}: pas de choix fournis`)
         continue
       }
 
-      if (!q.correctAnswer || !['A', 'B', 'C', 'D'].includes(q.correctAnswer)) {
-        parseErrors.push(`Question ${i + 1}: réponse correcte invalide`)
+      if (q.choices.length < 2) {
+        parseErrors.push(`Question ${i + 1}: doit avoir au moins 2 choix`)
         continue
       }
 
-      // Validate choices structure
-      const validChoices = q.choices.every(
-        (c: unknown) =>
-          typeof c === 'object' &&
-          c !== null &&
-          'id' in c &&
-          'text' in c &&
-          typeof (c as { text: unknown }).text === 'string'
-      )
+      // Normalize correctAnswer - accept both letter and index
+      let correctAnswer = q.correctAnswer
+      if (typeof correctAnswer === 'number' || /^\d+$/.test(String(correctAnswer))) {
+        // Convert index to letter (0 -> A, 1 -> B, etc.)
+        const index = Number(correctAnswer)
+        correctAnswer = String.fromCharCode(65 + index) // 65 = 'A'
+      }
 
-      if (!validChoices) {
-        parseErrors.push(`Question ${i + 1}: structure des choix invalide`)
+      if (!correctAnswer || !['A', 'B', 'C', 'D'].includes(String(correctAnswer).toUpperCase())) {
+        parseErrors.push(`Question ${i + 1}: réponse correcte invalide (${q.correctAnswer})`)
         continue
+      }
+      correctAnswer = String(correctAnswer).toUpperCase()
+
+      // Validate and normalize choices structure
+      const normalizedChoices: { id: string; text: string }[] = []
+      let choicesValid = true
+
+      for (let j = 0; j < q.choices.length && j < 4; j++) {
+        const c = q.choices[j]
+        const expectedId = String.fromCharCode(65 + j) // A, B, C, D
+
+        if (typeof c === 'string') {
+          // Simple string choice - convert to object
+          normalizedChoices.push({ id: expectedId, text: c })
+        } else if (typeof c === 'object' && c !== null) {
+          // Object choice
+          const text =
+            c.text ||
+            c.label ||
+            c.content ||
+            Object.values(c).find(v => typeof v === 'string' && v !== c.id)
+          if (text && typeof text === 'string') {
+            normalizedChoices.push({ id: c.id || expectedId, text: text.trim() })
+          } else {
+            parseErrors.push(`Question ${i + 1}: choix ${expectedId} mal formé`)
+            choicesValid = false
+            break
+          }
+        } else {
+          parseErrors.push(`Question ${i + 1}: choix ${expectedId} invalide`)
+          choicesValid = false
+          break
+        }
+      }
+
+      if (!choicesValid || normalizedChoices.length < 2) {
+        continue
+      }
+
+      // Pad to 4 choices if needed (for consistency)
+      while (normalizedChoices.length < 4) {
+        const id = String.fromCharCode(65 + normalizedChoices.length)
+        normalizedChoices.push({ id, text: `Option ${id}` })
+        parseErrors.push(`Question ${i + 1}: choix ${id} ajouté automatiquement (manquant)`)
       }
 
       // Build validated question
       questions.push({
         text: q.text.trim(),
-        choices: q.choices.map((c: { id: string; text: string }) => ({
-          id: c.id,
-          text: c.text.trim()
-        })),
-        correctAnswer: q.correctAnswer,
+        choices: normalizedChoices,
+        correctAnswer,
         explanation: q.explanation?.trim(),
         difficulty: validateDifficulty(q.difficulty),
-        tags: Array.isArray(q.tags) ? q.tags.filter((t: unknown) => typeof t === 'string') : []
+        tags: Array.isArray(q.tags) ? q.tags.filter((t: unknown) => typeof t === 'string') : [],
       })
     }
   } catch (error) {
     return {
       questions: [],
-      parseErrors: [`Erreur de parsing JSON: ${error instanceof Error ? error.message : 'inconnue'}`],
-      rawResponse: response
+      parseErrors: [
+        `Erreur de parsing JSON: ${error instanceof Error ? error.message : 'inconnue'}`,
+      ],
+      rawResponse: response,
     }
   }
 
@@ -184,8 +263,8 @@ export function convertToQuestions(
     metadata: {
       qualityScore: undefined,
       timesUsed: 0,
-      successRate: undefined
-    }
+      successRate: undefined,
+    },
   }))
 }
 
@@ -257,10 +336,10 @@ export function parseQualityEvaluation(response: string): QualityEvaluation | nu
         clarity: data.details?.clarity ?? data.score,
         coherence: data.details?.coherence ?? data.score,
         plausibility: data.details?.plausibility ?? data.score,
-        relevance: data.details?.relevance ?? data.score
+        relevance: data.details?.relevance ?? data.score,
       },
       issues: Array.isArray(data.issues) ? data.issues : [],
-      suggestions: Array.isArray(data.suggestions) ? data.suggestions : []
+      suggestions: Array.isArray(data.suggestions) ? data.suggestions : [],
     }
   } catch {
     return null

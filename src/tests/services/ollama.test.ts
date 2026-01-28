@@ -10,7 +10,7 @@ import {
   parseTags,
   parseExplanation,
   parseQualityEvaluation,
-  convertToQuestions
+  convertToQuestions,
 } from '@/services/ollama/parser'
 import {
   jaccardSimilarity,
@@ -18,7 +18,7 @@ import {
   levenshteinSimilarity,
   calculateSimilarity,
   checkDuplicate,
-  findInternalDuplicates
+  findInternalDuplicates,
 } from '@/services/analysis/duplicates'
 import type { Question } from '@/types'
 
@@ -82,12 +82,12 @@ describe('parseAIQuestions', () => {
             { id: 'A', text: 'A nerve bundle' },
             { id: 'B', text: 'A muscle' },
             { id: 'C', text: 'A bone' },
-            { id: 'D', text: 'A blood vessel' }
+            { id: 'D', text: 'A blood vessel' },
           ],
           correctAnswer: 'A',
-          explanation: 'The spinal cord is part of the nervous system.'
-        }
-      ]
+          explanation: 'The spinal cord is part of the nervous system.',
+        },
+      ],
     })
 
     const result = parseAIQuestions(response)
@@ -128,11 +128,11 @@ describe('parseAIQuestions', () => {
             { id: 'A', text: 'A' },
             { id: 'B', text: 'B' },
             { id: 'C', text: 'C' },
-            { id: 'D', text: 'D' }
+            { id: 'D', text: 'D' },
           ],
-          correctAnswer: 'A'
-        }
-      ]
+          correctAnswer: 'A',
+        },
+      ],
     })
 
     const result = parseAIQuestions(response)
@@ -141,24 +141,26 @@ describe('parseAIQuestions', () => {
     expect(result.parseErrors[0]).toContain('texte manquant')
   })
 
-  it('should report error for wrong number of choices', () => {
+  it('should auto-complete questions with less than 4 choices', () => {
     const response = JSON.stringify({
       questions: [
         {
           text: 'Question?',
           choices: [
             { id: 'A', text: 'A' },
-            { id: 'B', text: 'B' }
+            { id: 'B', text: 'B' },
           ],
-          correctAnswer: 'A'
-        }
-      ]
+          correctAnswer: 'A',
+        },
+      ],
     })
 
     const result = parseAIQuestions(response)
-    expect(result.questions).toHaveLength(0)
-    expect(result.parseErrors).toHaveLength(1)
-    expect(result.parseErrors[0]).toContain('4 choix')
+    // Now accepts 2-4 choices and auto-completes to 4
+    expect(result.questions).toHaveLength(1)
+    expect(result.questions[0].choices).toHaveLength(4)
+    expect(result.parseErrors.length).toBeGreaterThan(0) // Should warn about missing choices
+    expect(result.parseErrors.some(e => e.includes('ajouté automatiquement'))).toBe(true)
   })
 
   it('should report error for invalid correctAnswer', () => {
@@ -170,11 +172,11 @@ describe('parseAIQuestions', () => {
             { id: 'A', text: 'A' },
             { id: 'B', text: 'B' },
             { id: 'C', text: 'C' },
-            { id: 'D', text: 'D' }
+            { id: 'D', text: 'D' },
           ],
-          correctAnswer: 'E'
-        }
-      ]
+          correctAnswer: 'E',
+        },
+      ],
     })
 
     const result = parseAIQuestions(response)
@@ -197,12 +199,12 @@ describe('parseAIQuestions', () => {
             { id: 'A', text: 'A' },
             { id: 'B', text: 'B' },
             { id: 'C', text: 'C' },
-            { id: 'D', text: 'D' }
+            { id: 'D', text: 'D' },
           ],
           correctAnswer: 'A',
-          difficulty: 'hard'
-        }
-      ]
+          difficulty: 'hard',
+        },
+      ],
     })
 
     const result = parseAIQuestions(response)
@@ -218,12 +220,12 @@ describe('parseAIQuestions', () => {
             { id: 'A', text: 'A' },
             { id: 'B', text: 'B' },
             { id: 'C', text: 'C' },
-            { id: 'D', text: 'D' }
+            { id: 'D', text: 'D' },
           ],
           correctAnswer: 'A',
-          difficulty: 'super_hard'
-        }
-      ]
+          difficulty: 'super_hard',
+        },
+      ],
     })
 
     const result = parseAIQuestions(response)
@@ -239,12 +241,12 @@ describe('parseAIQuestions', () => {
             { id: 'A', text: 'A' },
             { id: 'B', text: 'B' },
             { id: 'C', text: 'C' },
-            { id: 'D', text: 'D' }
+            { id: 'D', text: 'D' },
           ],
           correctAnswer: 'A',
-          tags: ['anatomy', 'spine']
-        }
-      ]
+          tags: ['anatomy', 'spine'],
+        },
+      ],
     })
 
     const result = parseAIQuestions(response)
@@ -265,13 +267,13 @@ describe('convertToQuestions', () => {
           { id: 'A', text: 'Study of body structure' },
           { id: 'B', text: 'Study of cells' },
           { id: 'C', text: 'Study of diseases' },
-          { id: 'D', text: 'Study of chemistry' }
+          { id: 'D', text: 'Study of chemistry' },
         ],
         correctAnswer: 'A',
         explanation: 'Anatomy is the study of body structure.',
         difficulty: 'easy' as const,
-        tags: ['anatomy', 'basics']
-      }
+        tags: ['anatomy', 'basics'],
+      },
     ]
 
     const questions = convertToQuestions(aiQuestions, 'Anatomie', 'Introduction')
@@ -322,10 +324,10 @@ describe('parseQualityEvaluation', () => {
         clarity: 90,
         coherence: 80,
         plausibility: 85,
-        relevance: 85
+        relevance: 85,
       },
       issues: ['Minor ambiguity'],
-      suggestions: ['Add more context']
+      suggestions: ['Add more context'],
     })
 
     const result = parseQualityEvaluation(response)
@@ -447,7 +449,7 @@ describe('checkDuplicate', () => {
         { id: 'A', text: 'A' },
         { id: 'B', text: 'B' },
         { id: 'C', text: 'C' },
-        { id: 'D', text: 'D' }
+        { id: 'D', text: 'D' },
       ],
       correctAnswer: 'A',
       theme: 'Neurologie',
@@ -455,7 +457,7 @@ describe('checkDuplicate', () => {
       tags: [],
       source: 'manual',
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     },
     {
       id: '2',
@@ -465,7 +467,7 @@ describe('checkDuplicate', () => {
         { id: 'A', text: 'A' },
         { id: 'B', text: 'B' },
         { id: 'C', text: 'C' },
-        { id: 'D', text: 'D' }
+        { id: 'D', text: 'D' },
       ],
       correctAnswer: 'B',
       theme: 'Anatomie',
@@ -473,8 +475,8 @@ describe('checkDuplicate', () => {
       tags: [],
       source: 'manual',
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
+      updatedAt: new Date().toISOString(),
+    },
   ]
 
   it('should detect exact duplicate', () => {
@@ -487,19 +489,13 @@ describe('checkDuplicate', () => {
   })
 
   it('should detect similar question', () => {
-    const result = checkDuplicate(
-      'Quelle est la fonction du nerf sciatique?',
-      existingQuestions
-    )
+    const result = checkDuplicate('Quelle est la fonction du nerf sciatique?', existingQuestions)
     expect(result.matches.length).toBeGreaterThan(0)
     expect(result.matches[0].similarity).toBeGreaterThan(0.7)
   })
 
   it('should not flag unrelated question', () => {
-    const result = checkDuplicate(
-      'Quel est le role du systeme immunitaire?',
-      existingQuestions
-    )
+    const result = checkDuplicate('Quel est le role du systeme immunitaire?', existingQuestions)
     expect(result.isDuplicate).toBe(false)
     expect(result.matches).toHaveLength(0)
   })
@@ -520,7 +516,7 @@ describe('findInternalDuplicates', () => {
     const questions = [
       { text: 'What is anatomy?', id: '1' },
       { text: 'What is physiology?', id: '2' },
-      { text: 'What is anatomy?', id: '3' } // Duplicate of first
+      { text: 'What is anatomy?', id: '3' }, // Duplicate of first
     ]
 
     const duplicates = findInternalDuplicates(questions)
@@ -534,7 +530,7 @@ describe('findInternalDuplicates', () => {
     const questions = [
       { text: 'Question about bones' },
       { text: 'Question about muscles' },
-      { text: 'Question about nerves' }
+      { text: 'Question about nerves' },
     ]
 
     const duplicates = findInternalDuplicates(questions)
@@ -544,7 +540,7 @@ describe('findInternalDuplicates', () => {
   it('should detect similar but not identical questions', () => {
     const questions = [
       { text: 'Quelle est la fonction du coeur?' },
-      { text: 'Quelle est la fonction principale du coeur humain?' }
+      { text: 'Quelle est la fonction principale du coeur humain?' },
     ]
 
     const duplicates = findInternalDuplicates(questions, 0.5) // Lower threshold

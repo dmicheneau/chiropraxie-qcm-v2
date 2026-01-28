@@ -6,8 +6,10 @@
 import * as pdfjsLib from 'pdfjs-dist'
 import type { TextItem } from 'pdfjs-dist/types/src/display/api'
 
-// Configure worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+// Configure worker - use local worker from public folder
+if (typeof window !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
+}
 
 export interface PDFExtractionResult {
   text: string
@@ -53,7 +55,7 @@ export async function extractTextFromPDF(
     const pdfMetadata = {
       title: info?.Title as string | undefined,
       author: info?.Author as string | undefined,
-      creationDate: info?.CreationDate as string | undefined
+      creationDate: info?.CreationDate as string | undefined,
     }
 
     // Extract text from each page
@@ -66,7 +68,7 @@ export async function extractTextFromPDF(
           currentPage: pageNum,
           totalPages,
           percentage: Math.round((pageNum / totalPages) * 100),
-          message: `Extraction page ${pageNum}/${totalPages}...`
+          message: `Extraction page ${pageNum}/${totalPages}...`,
         })
       }
 
@@ -77,7 +79,7 @@ export async function extractTextFromPDF(
         // Combine text items with proper spacing
         const pageText = textContent.items
           .filter((item): item is TextItem => 'str' in item)
-          .map((item) => item.str || '')
+          .map(item => item.str || '')
           .join(' ')
           .replace(/\s+/g, ' ')
           .trim()
@@ -102,7 +104,7 @@ export async function extractTextFromPDF(
       wordCount,
       metadata: pdfMetadata,
       pageTexts,
-      warnings
+      warnings,
     }
   } catch (error) {
     throw new Error(
@@ -115,17 +117,19 @@ export async function extractTextFromPDF(
  * Clean and normalize extracted text
  */
 function cleanExtractedText(text: string): string {
-  return text
-    // Remove excessive whitespace
-    .replace(/\s+/g, ' ')
-    // Normalize line breaks
-    .replace(/\n{3,}/g, '\n\n')
-    // Remove page numbers (common patterns)
-    .replace(/^\s*\d+\s*$/gm, '')
-    // Remove header/footer artifacts
-    .replace(/^(Page|page)\s+\d+\s*(of|sur|\/)\s*\d+\s*$/gm, '')
-    // Trim
-    .trim()
+  return (
+    text
+      // Remove excessive whitespace
+      .replace(/\s+/g, ' ')
+      // Normalize line breaks
+      .replace(/\n{3,}/g, '\n\n')
+      // Remove page numbers (common patterns)
+      .replace(/^\s*\d+\s*$/gm, '')
+      // Remove header/footer artifacts
+      .replace(/^(Page|page)\s+\d+\s*(of|sur|\/)\s*\d+\s*$/gm, '')
+      // Trim
+      .trim()
+  )
 }
 
 /**
@@ -168,6 +172,6 @@ export async function getPDFInfo(file: File): Promise<{
   return {
     pageCount: pdf.numPages,
     title: info?.Title as string | undefined,
-    author: info?.Author as string | undefined
+    author: info?.Author as string | undefined,
   }
 }

@@ -89,10 +89,7 @@ Réponse (JSON uniquement):
 /**
  * Prompt for evaluating question quality
  */
-export function evaluateQualityPrompt(
-  questionText: string,
-  choices: string[]
-): string {
+export function evaluateQualityPrompt(questionText: string, choices: string[]): string {
   return `Évalue la qualité de cette question de QCM pour des étudiants en chiropraxie.
 
 Question: ${questionText}
@@ -121,10 +118,7 @@ Réponse (JSON uniquement):
 /**
  * Prompt for estimating difficulty
  */
-export function estimateDifficultyPrompt(
-  questionText: string,
-  correctAnswer: string
-): string {
+export function estimateDifficultyPrompt(questionText: string, correctAnswer: string): string {
   return `Estime la difficulté de cette question de QCM pour un étudiant en chiropraxie.
 
 Question: ${questionText}
@@ -137,4 +131,39 @@ Critères:
 
 Réponse (JSON uniquement):
 {"difficulty": "medium", "reasoning": "Explication courte"}`
+}
+
+/**
+ * Prompt for detecting theme from source text
+ */
+export function detectThemePrompt(sourceText: string): string {
+  const themes = [
+    'Anatomie',
+    'Neurologie',
+    'Chiropraxie',
+    'Techniques',
+    'Pathologie',
+    'Sécurité',
+    'Biomécanique',
+    'Examen clinique',
+    'Imagerie',
+    'Pharmacologie',
+  ]
+
+  return `Tu es un expert en chiropraxie. Analyse ce texte et identifie le thème principal parmi la liste ci-dessous.
+
+THÈMES DISPONIBLES:
+${themes.map((t, i) => `${i + 1}. ${t}`).join('\n')}
+
+TEXTE À ANALYSER:
+${sourceText.slice(0, 2000)}
+
+RÈGLES:
+1. Choisis UN SEUL thème de la liste
+2. Si le texte couvre plusieurs thèmes, choisis le plus dominant
+3. Suggère également un sous-thème spécifique si pertinent
+4. Réponse en JSON uniquement
+
+Réponse (JSON uniquement, sans autre texte):
+{"theme": "Anatomie", "subtheme": "Colonne vertébrale", "confidence": 85}`
 }

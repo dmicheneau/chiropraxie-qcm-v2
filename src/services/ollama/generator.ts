@@ -4,13 +4,18 @@
  */
 
 import { ollamaService } from './service'
-import { generateQuestionsPrompt, generateTagsPrompt, generateExplanationPrompt } from './prompts'
+import {
+  generateQuestionsPrompt,
+  generateTagsPrompt,
+  generateExplanationPrompt,
+  detectThemePrompt,
+} from './prompts'
 import {
   parseAIQuestions,
   convertToQuestions,
   parseTags,
   parseExplanation,
-  type AIGeneratedQuestion
+  type AIGeneratedQuestion,
 } from './parser'
 import type { Question } from '@/types'
 
@@ -50,7 +55,7 @@ export async function generateQuestions(
     onProgress?.({
       status: 'starting',
       message: 'Connexion à Ollama...',
-      progress: 0
+      progress: 0,
     })
 
     // Check if Ollama is available
@@ -68,7 +73,7 @@ export async function generateQuestions(
     onProgress?.({
       status: 'generating',
       message: `Génération de ${count} questions en cours...`,
-      progress: 20
+      progress: 20,
     })
 
     // Generate response
@@ -78,7 +83,7 @@ export async function generateQuestions(
     onProgress?.({
       status: 'parsing',
       message: 'Analyse des questions générées...',
-      progress: 80
+      progress: 80,
     })
 
     // Parse response
@@ -91,7 +96,7 @@ export async function generateQuestions(
     onProgress?.({
       status: 'complete',
       message: `${questions.length} questions générées avec succès`,
-      progress: 100
+      progress: 100,
     })
 
     return {
@@ -99,12 +104,12 @@ export async function generateQuestions(
       aiQuestions: parsed.questions,
       parseErrors: parsed.parseErrors,
       generationTime: performance.now() - startTime,
-      rawResponse: response
+      rawResponse: response,
     }
   } catch (error) {
     onProgress?.({
       status: 'error',
-      message: error instanceof Error ? error.message : 'Erreur inconnue'
+      message: error instanceof Error ? error.message : 'Erreur inconnue',
     })
 
     throw error
@@ -172,7 +177,7 @@ export async function generateMissingExplanations(
 
       result.push({
         ...q,
-        explanation: explanation || undefined
+        explanation: explanation || undefined,
       })
     } else {
       result.push(q)
@@ -205,9 +210,64 @@ export async function generateMissingTags(
 
     result.push({
       ...q,
-      tags: tags.length > 0 ? tags : q.tags
+      tags: tags.length > 0 ? tags : q.tags,
     })
   }
 
   return result
+}
+
+/**
+ * Theme detection result
+ */
+export interface ThemeDetectionResult {
+  theme: string
+  subtheme?: string
+  confidence: number
+}
+
+/**
+ * Default themes available in the application
+ */
+export const AVAILABLE_THEMES = [
+  'Anatomie',
+  'Neurologie',
+  'Chiropraxie',
+  'Techniques',
+  'Pathologie',
+  'Sécurité',
+  'Biomécanique',
+  'Examen clinique',
+  'Imagerie',
+  'Pharmacologie',
+] as const
+
+/**
+ * Detect theme from source text using AI
+ */
+export async function detectTheme(sourceText: string): Promise<ThemeDetectionResult> {
+  try {
+    const prompt = detectThemePrompt(sourceText)
+    const response = await ollamaService.generate(prompt, { maxTokens: 200 })
+
+    // Parse JSON response
+    const jsonMatch = response.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) {
+      return { theme: AVAILABLE_THEMES[0], confidence: 0 }
+    }
+
+    const parsed = JSON.parse(jsonMatch[0])
+
+    // Validate theme is in our list
+    const validTheme = AVAILABLE_THEMES.find(t => t.toLowerCase() === parsed.theme?.toLowerCase())
+
+    return {
+      theme: validTheme || AVAILABLE_THEMES[0],
+      subtheme: parsed.subtheme || undefined,
+      confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 50,
+    }
+  } catch {
+    // Fallback to first theme if detection fails
+    return { theme: AVAILABLE_THEMES[0], confidence: 0 }
+  }
 }

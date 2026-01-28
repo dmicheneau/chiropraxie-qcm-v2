@@ -3,7 +3,7 @@
  * Tab for generating questions using AI (Ollama)
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Sparkles, AlertCircle, CheckCircle } from 'lucide-react'
 import { useOllama } from '@/hooks'
 import { OllamaStatus } from '@/components/analysis'
@@ -23,11 +23,16 @@ const THEMES = [
   'Biomécanique',
   'Examen clinique',
   'Imagerie',
-  'Pharmacologie'
+  'Pharmacologie',
 ]
 
 export function AIGenerateTab() {
   const { status, isLoading: ollamaLoading, checkHealth } = useOllama()
+
+  // Check Ollama health when component mounts (only when user navigates to AI tab)
+  useEffect(() => {
+    checkHealth()
+  }, [checkHealth])
 
   // Form state
   const [sourceText, setSourceText] = useState('')
@@ -76,7 +81,7 @@ export function AIGenerateTab() {
       setSelectedQuestions(new Set(result.questions.map(q => q.id)))
 
       if (result.questions.length === 0 && result.parseErrors.length > 0) {
-        setError('Aucune question n\'a pu être générée. Vérifiez le texte source.')
+        setError("Aucune question n'a pu être générée. Vérifiez le texte source.")
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur lors de la génération')
@@ -162,9 +167,7 @@ export function AIGenerateTab() {
               />
               {sourceText.length > 0 && sourceText.length < 50 && (
                 <label className="label">
-                  <span className="label-text-alt text-warning">
-                    Minimum 50 caractères requis
-                  </span>
+                  <span className="label-text-alt text-warning">Minimum 50 caractères requis</span>
                 </label>
               )}
             </div>
@@ -303,9 +306,7 @@ export function AIGenerateTab() {
           {saveSuccess ? (
             <div className="alert alert-success">
               <CheckCircle className="h-5 w-5" />
-              <span>
-                {selectedQuestions.size} question(s) ajoutée(s) à la banque avec succès !
-              </span>
+              <span>{selectedQuestions.size} question(s) ajoutée(s) à la banque avec succès !</span>
             </div>
           ) : (
             <div className="flex justify-end gap-3">

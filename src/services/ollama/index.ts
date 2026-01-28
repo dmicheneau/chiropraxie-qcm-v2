@@ -10,7 +10,8 @@ export {
   generateTagsPrompt,
   generateExplanationPrompt,
   evaluateQualityPrompt,
-  estimateDifficultyPrompt
+  estimateDifficultyPrompt,
+  detectThemePrompt,
 } from './prompts'
 
 export {
@@ -19,19 +20,22 @@ export {
   parseTags,
   parseExplanation,
   parseQualityEvaluation,
-  extractJSON
+  extractJSON,
 } from './parser'
-export type {
-  AIGeneratedQuestion,
-  ParsedQuestionsResult,
-  QualityEvaluation
-} from './parser'
+export type { AIGeneratedQuestion, ParsedQuestionsResult, QualityEvaluation } from './parser'
 
 export {
   generateQuestions,
   generateTagsForQuestion,
   generateExplanationForQuestion,
   generateMissingExplanations,
-  generateMissingTags
+  generateMissingTags,
+  detectTheme,
+  AVAILABLE_THEMES,
 } from './generator'
-export type { GenerationOptions, GenerationResult, GenerationProgress } from './generator'
+export type {
+  GenerationOptions,
+  GenerationResult,
+  GenerationProgress,
+  ThemeDetectionResult,
+} from './generator'
