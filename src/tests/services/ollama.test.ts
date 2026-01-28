@@ -602,6 +602,60 @@ describe('parseAIQuestions with real Ollama edge cases', () => {
     expect(result.questions[0].correctAnswer).toBe('A')
     expect(result.questions[1].correctAnswer).toBe('B')
   })
+
+  it('should handle alternative Ollama format with "question" and "answers" keys', () => {
+    // Alternative format from Ollama: uses "question" instead of "text", "answers" instead of "choices"
+    // and "correct: true/false" instead of "correctAnswer"
+    const alternativeFormat = `{"questions": [
+      {
+        "id": 1,
+        "question": "Quel est le rôle principal du tissu conjonctif lâche?",
+        "answers": [
+          {"text": "Il joue un rôle de remplissage", "correct": true},
+          {"text": "Il est composé majoritairement de fibres de réticuline", "correct": false},
+          {"text": "Il est constitué de graisse brune", "correct": false},
+          {"text": "Il est composé d'un maillage de fibres réticulées", "correct": false}
+        ]
+      },
+      {
+        "id": 2,
+        "question": "Quelle substance est la matrice extracellulaire des tissus conjonctifs lâches composée de?",
+        "answers": [
+          {"text": "Substance fondamentale et peu de fibres", "correct": false},
+          {"text": "Transportent les hormones et éléments nutritifs", "correct": false},
+          {"text": "Ils défendent l'organisme", "correct": true},
+          {"text": "Fibres de collagène uniquement", "correct": false}
+        ]
+      }
+    ]}`
+
+    const result = parseAIQuestions(alternativeFormat)
+    expect(result.questions).toHaveLength(2)
+    expect(result.questions[0].text).toBe('Quel est le rôle principal du tissu conjonctif lâche?')
+    expect(result.questions[0].correctAnswer).toBe('A') // First answer has correct: true
+    expect(result.questions[0].choices[0].text).toBe('Il joue un rôle de remplissage')
+    expect(result.questions[0].choices[0].id).toBe('A')
+    expect(result.questions[1].correctAnswer).toBe('C') // Third answer has correct: true
+  })
+
+  it('should handle answers with only text and correct properties', () => {
+    const simpleAnswersFormat = `{"questions": [
+      {
+        "question": "Test question?",
+        "answers": [
+          {"text": "Wrong answer 1", "correct": false},
+          {"text": "Correct answer", "correct": true},
+          {"text": "Wrong answer 2", "correct": false},
+          {"text": "Wrong answer 3", "correct": false}
+        ]
+      }
+    ]}`
+
+    const result = parseAIQuestions(simpleAnswersFormat)
+    expect(result.questions).toHaveLength(1)
+    expect(result.questions[0].correctAnswer).toBe('B') // Second answer is correct
+    expect(result.questions[0].choices[1].text).toBe('Correct answer')
+  })
 })
 
 // =========================================

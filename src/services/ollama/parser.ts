@@ -131,6 +131,9 @@ function repairJSON(text: string): string {
 
 /**
  * Parse AI-generated questions from response text
+ * Supports multiple formats:
+ * - Format 1: {text, choices: [{id, text}], correctAnswer}
+ * - Format 2: {question, answers: [{text, correct: boolean}]}
  */
 export function parseAIQuestions(response: string): ParsedQuestionsResult {
   const parseErrors: string[] = []
@@ -165,54 +168,70 @@ export function parseAIQuestions(response: string): ParsedQuestionsResult {
     for (let i = 0; i < rawQuestions.length; i++) {
       const q = rawQuestions[i]
 
-      // Validate required fields
-      if (!q.text || typeof q.text !== 'string') {
+      // Support both "text" and "question" keys for question text
+      const questionText = q.text || q.question
+      if (!questionText || typeof questionText !== 'string') {
         parseErrors.push(`Question ${i + 1}: texte manquant ou invalide`)
         continue
       }
 
-      // Be more flexible with choices validation
-      if (!Array.isArray(q.choices)) {
+      // Support both "choices" and "answers" keys for options
+      const rawChoices = q.choices || q.answers
+      if (!Array.isArray(rawChoices)) {
         parseErrors.push(`Question ${i + 1}: pas de choix fournis`)
         continue
       }
 
-      if (q.choices.length < 2) {
+      if (rawChoices.length < 2) {
         parseErrors.push(`Question ${i + 1}: doit avoir au moins 2 choix`)
         continue
       }
 
-      // Normalize correctAnswer - accept both letter and index
-      let correctAnswer = q.correctAnswer
-      if (typeof correctAnswer === 'number' || /^\d+$/.test(String(correctAnswer))) {
-        // Convert index to letter (0 -> A, 1 -> B, etc.)
-        const index = Number(correctAnswer)
-        correctAnswer = String.fromCharCode(65 + index) // 65 = 'A'
+      // Detect format and extract correct answer
+      let correctAnswer: string | null = null
+
+      // Format 1: correctAnswer is provided directly (A, B, C, D or index)
+      if (q.correctAnswer !== undefined) {
+        if (typeof q.correctAnswer === 'number' || /^\d+$/.test(String(q.correctAnswer))) {
+          const index = Number(q.correctAnswer)
+          correctAnswer = String.fromCharCode(65 + index)
+        } else {
+          correctAnswer = String(q.correctAnswer).toUpperCase()
+        }
+      }
+      // Format 2: answers have "correct: true/false" property
+      else {
+        const correctIndex = rawChoices.findIndex((c: { correct?: boolean }) => c.correct === true)
+        if (correctIndex !== -1) {
+          correctAnswer = String.fromCharCode(65 + correctIndex) // 0 -> A, 1 -> B, etc.
+        }
       }
 
-      if (!correctAnswer || !['A', 'B', 'C', 'D'].includes(String(correctAnswer).toUpperCase())) {
-        parseErrors.push(`Question ${i + 1}: réponse correcte invalide (${q.correctAnswer})`)
+      if (!correctAnswer || !['A', 'B', 'C', 'D'].includes(correctAnswer)) {
+        parseErrors.push(
+          `Question ${i + 1}: réponse correcte invalide (${q.correctAnswer || 'non trouvée'})`
+        )
         continue
       }
-      correctAnswer = String(correctAnswer).toUpperCase()
 
       // Validate and normalize choices structure
       const normalizedChoices: { id: string; text: string }[] = []
       let choicesValid = true
 
-      for (let j = 0; j < q.choices.length && j < 4; j++) {
-        const c = q.choices[j]
+      for (let j = 0; j < rawChoices.length && j < 4; j++) {
+        const c = rawChoices[j]
         const expectedId = String.fromCharCode(65 + j) // A, B, C, D
 
         if (typeof c === 'string') {
           // Simple string choice - convert to object
           normalizedChoices.push({ id: expectedId, text: c })
         } else if (typeof c === 'object' && c !== null) {
-          // Object choice
+          // Object choice - support multiple text key names
           const text =
             c.text ||
             c.label ||
             c.content ||
+            c.answer ||
             Object.values(c).find(v => typeof v === 'string' && v !== c.id)
           if (text && typeof text === 'string') {
             normalizedChoices.push({ id: c.id || expectedId, text: text.trim() })
@@ -241,7 +260,7 @@ export function parseAIQuestions(response: string): ParsedQuestionsResult {
 
       // Build validated question
       questions.push({
-        text: q.text.trim(),
+        text: questionText.trim(),
         choices: normalizedChoices,
         correctAnswer,
         explanation: q.explanation?.trim(),
