@@ -77,7 +77,17 @@ export async function generateQuestions(
     })
 
     // Generate response
+    console.log('[Ollama] Starting generation with prompt length:', prompt.length)
     const response = await ollamaService.generate(prompt)
+
+    // Debug logging
+    console.log('[Ollama] Raw response length:', response?.length || 0)
+    console.log('[Ollama] Raw response preview:', response?.slice(0, 800))
+    console.log('[Ollama] Raw response end:', response?.slice(-200))
+
+    if (!response || response.length === 0) {
+      throw new Error('Ollama a retourné une réponse vide')
+    }
 
     // Notify parsing
     onProgress?.({
@@ -87,7 +97,15 @@ export async function generateQuestions(
     })
 
     // Parse response
+    console.log('[Ollama] Starting parse...')
     const parsed = parseAIQuestions(response)
+
+    // Debug logging
+    console.log('[Ollama] Parsed questions count:', parsed.questions.length)
+    console.log('[Ollama] Parse errors:', parsed.parseErrors)
+    if (parsed.questions.length === 0) {
+      console.log('[Ollama] Full raw response for debugging:', response)
+    }
 
     // Convert to Question objects
     const questions = convertToQuestions(parsed.questions, options.theme, options.subtheme)

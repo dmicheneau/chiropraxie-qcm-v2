@@ -350,6 +350,261 @@ describe('parseQualityEvaluation', () => {
 })
 
 // =========================================
+// Malformed JSON Repair Tests (Real Ollama outputs)
+// =========================================
+
+describe('extractJSON with malformed Ollama responses', () => {
+  it('should repair missing "text" key in choices', () => {
+    // Real pattern from Ollama: {"id": "D", "Stroma"} instead of {"id": "D", "text": "Stroma"}
+    const malformedResponse = `{"questions": [
+      {
+        "text": "Quel tissu conjonctif recouvre le scléros?",
+        "choices": [
+          {"id": "A", "text": "Tunica fibrosa"},
+          {"id": "B", "text": "Tunica vasculosa"},
+          {"id": "C", "text": "Tunica albuginea"},
+          {"id": "D", "Stroma"}
+        ],
+        "correctAnswer": "A",
+        "explanation": "Explication...",
+        "difficulty": "easy"
+      }
+    ]}`
+
+    const result = extractJSON(malformedResponse)
+    expect(result).not.toBeNull()
+    const parsed = JSON.parse(result!)
+    expect(parsed.questions).toHaveLength(1)
+    expect(parsed.questions[0].choices[3].text).toBe('Stroma')
+  })
+
+  it('should handle multiple missing "text" keys in same response', () => {
+    const malformedResponse = `{"questions": [
+      {
+        "text": "Question test?",
+        "choices": [
+          {"id": "A", "Réponse A"},
+          {"id": "B", "Réponse B"},
+          {"id": "C", "Réponse C"},
+          {"id": "D", "Réponse D"}
+        ],
+        "correctAnswer": "A"
+      }
+    ]}`
+
+    const result = extractJSON(malformedResponse)
+    expect(result).not.toBeNull()
+    const parsed = JSON.parse(result!)
+    expect(parsed.questions[0].choices[0].text).toBe('Réponse A')
+    expect(parsed.questions[0].choices[1].text).toBe('Réponse B')
+    expect(parsed.questions[0].choices[2].text).toBe('Réponse C')
+    expect(parsed.questions[0].choices[3].text).toBe('Réponse D')
+  })
+
+  it('should handle JSON with surrounding explanation text', () => {
+    const responseWithText = `Voici les questions générées:
+
+    {"questions": [
+      {
+        "text": "Quelle est la fonction du nerf?",
+        "choices": [
+          {"id": "A", "text": "Transmission"},
+          {"id": "B", "text": "Protection"},
+          {"id": "C", "text": "Nutrition"},
+          {"id": "D", "text": "Support"}
+        ],
+        "correctAnswer": "A"
+      }
+    ]}
+    
+    J'espère que ces questions vous seront utiles!`
+
+    const result = extractJSON(responseWithText)
+    expect(result).not.toBeNull()
+    const parsed = JSON.parse(result!)
+    expect(parsed.questions).toHaveLength(1)
+  })
+
+  it('should handle trailing commas', () => {
+    const responseWithTrailingComma = `{"questions": [
+      {
+        "text": "Question?",
+        "choices": [
+          {"id": "A", "text": "A"},
+          {"id": "B", "text": "B"},
+          {"id": "C", "text": "C"},
+          {"id": "D", "text": "D"},
+        ],
+        "correctAnswer": "A",
+      },
+    ]}`
+
+    const result = extractJSON(responseWithTrailingComma)
+    expect(result).not.toBeNull()
+    const parsed = JSON.parse(result!)
+    expect(parsed.questions).toHaveLength(1)
+  })
+})
+
+describe('parseAIQuestions with real Ollama edge cases', () => {
+  it('should normalize correctAnswer from index to letter', () => {
+    const response = JSON.stringify({
+      questions: [
+        {
+          text: 'Question?',
+          choices: [
+            { id: 'A', text: 'A' },
+            { id: 'B', text: 'B' },
+            { id: 'C', text: 'C' },
+            { id: 'D', text: 'D' },
+          ],
+          correctAnswer: 0, // Index instead of letter
+        },
+      ],
+    })
+
+    const result = parseAIQuestions(response)
+    expect(result.questions).toHaveLength(1)
+    expect(result.questions[0].correctAnswer).toBe('A')
+  })
+
+  it('should normalize correctAnswer from string index to letter', () => {
+    const response = JSON.stringify({
+      questions: [
+        {
+          text: 'Question?',
+          choices: [
+            { id: 'A', text: 'A' },
+            { id: 'B', text: 'B' },
+            { id: 'C', text: 'C' },
+            { id: 'D', text: 'D' },
+          ],
+          correctAnswer: '1', // String index instead of letter
+        },
+      ],
+    })
+
+    const result = parseAIQuestions(response)
+    expect(result.questions).toHaveLength(1)
+    expect(result.questions[0].correctAnswer).toBe('B')
+  })
+
+  it('should handle lowercase correctAnswer', () => {
+    const response = JSON.stringify({
+      questions: [
+        {
+          text: 'Question?',
+          choices: [
+            { id: 'A', text: 'A' },
+            { id: 'B', text: 'B' },
+            { id: 'C', text: 'C' },
+            { id: 'D', text: 'D' },
+          ],
+          correctAnswer: 'c', // lowercase
+        },
+      ],
+    })
+
+    const result = parseAIQuestions(response)
+    expect(result.questions).toHaveLength(1)
+    expect(result.questions[0].correctAnswer).toBe('C')
+  })
+
+  it('should handle simple string choices (no id/text object)', () => {
+    const response = JSON.stringify({
+      questions: [
+        {
+          text: 'Question?',
+          choices: ['Choice A', 'Choice B', 'Choice C', 'Choice D'],
+          correctAnswer: 'B',
+        },
+      ],
+    })
+
+    const result = parseAIQuestions(response)
+    expect(result.questions).toHaveLength(1)
+    expect(result.questions[0].choices[0].id).toBe('A')
+    expect(result.questions[0].choices[0].text).toBe('Choice A')
+  })
+
+  it('should handle mixed valid and invalid questions', () => {
+    const response = JSON.stringify({
+      questions: [
+        {
+          text: 'Valid question?',
+          choices: [
+            { id: 'A', text: 'A' },
+            { id: 'B', text: 'B' },
+            { id: 'C', text: 'C' },
+            { id: 'D', text: 'D' },
+          ],
+          correctAnswer: 'A',
+        },
+        {
+          // Missing text - should be skipped
+          choices: [
+            { id: 'A', text: 'A' },
+            { id: 'B', text: 'B' },
+          ],
+          correctAnswer: 'A',
+        },
+        {
+          text: 'Another valid question?',
+          choices: [
+            { id: 'A', text: 'A' },
+            { id: 'B', text: 'B' },
+            { id: 'C', text: 'C' },
+            { id: 'D', text: 'D' },
+          ],
+          correctAnswer: 'C',
+        },
+      ],
+    })
+
+    const result = parseAIQuestions(response)
+    expect(result.questions).toHaveLength(2) // Only valid ones
+    expect(result.parseErrors).toHaveLength(1) // One error for invalid
+  })
+
+  it('should handle complete real Ollama response with text key errors', () => {
+    // Real response pattern from Ollama mistral:7b-instruct
+    const realOllamaResponse = ` {"questions": [
+  {
+    "text": "Quel tissu conjonctif recouvre le scléros de l'œil?",
+    "choices": [
+      {"id": "A", "text": "Tunica fibrosa"},
+      {"id": "B", "text": "Tunica vasculosa"},
+      {"id": "C", "text": "Tunica albuginea"},
+      {"id": "D", "Stroma"}
+    ],
+    "correctAnswer": "A",
+    "explanation": "La tunica fibrosa est le tissu conjonctif qui recouvre le scléros de l'œil.",
+    "difficulty": "easy"
+  },
+  {
+    "text": "Quel rôle joue le tissu conjonctif dans les articulations?",
+    "choices": [
+      {"id": "A", "text": "Il protège les os des forces de frottement."},
+      {"id": "B", "text": "Il forme la capsule articulaire."},
+      {"id": "C", "text": "Il fournit l'alimentation des articulations."},
+      {"id": "D", "text": "Il permet le glissement entre les os."}
+    ],
+    "correctAnswer": "B",
+    "explanation": "Le tissu conjonctif forme la capsule articulaire qui protège les articulations.",
+    "difficulty": "medium"
+  }
+]
+}`
+
+    const result = parseAIQuestions(realOllamaResponse)
+    expect(result.questions).toHaveLength(2)
+    expect(result.questions[0].choices[3].text).toBe('Stroma')
+    expect(result.questions[0].correctAnswer).toBe('A')
+    expect(result.questions[1].correctAnswer).toBe('B')
+  })
+})
+
+// =========================================
 // Duplicate Detection Tests
 // =========================================
 

@@ -26,6 +26,13 @@ export interface ParsedQuestionsResult {
  * Includes basic repair for common AI mistakes
  */
 export function extractJSON(text: string): string | null {
+  console.log('[Parser] extractJSON called, input length:', text?.length || 0)
+
+  if (!text || text.length === 0) {
+    console.log('[Parser] Empty input text')
+    return null
+  }
+
   // Try to find JSON object or array in the response
   // First try specific patterns, then generic ones
   const patterns = [
@@ -45,28 +52,38 @@ export function extractJSON(text: string): string | null {
     /\[[\s\S]*\]/,
   ]
 
-  for (const pattern of patterns) {
+  for (let i = 0; i < patterns.length; i++) {
+    const pattern = patterns[i]
     const match = text.match(pattern)
     if (match) {
       let jsonStr = match[0]
+      console.log(`[Parser] Pattern ${i} matched, length: ${jsonStr.length}`)
 
       // Try to parse as-is first
       try {
         JSON.parse(jsonStr)
+        console.log('[Parser] JSON valid as-is')
         return jsonStr
-      } catch {
+      } catch (e) {
+        console.log(
+          '[Parser] JSON invalid, attempting repair...',
+          (e as Error).message?.slice(0, 100)
+        )
         // Try to repair common issues
         jsonStr = repairJSON(jsonStr)
         try {
           JSON.parse(jsonStr)
+          console.log('[Parser] JSON repaired successfully')
           return jsonStr
-        } catch {
+        } catch (e2) {
+          console.log('[Parser] Repair failed:', (e2 as Error).message?.slice(0, 100))
           // Continue to next pattern
         }
       }
     }
   }
 
+  console.log('[Parser] No valid JSON found in response')
   return null
 }
 
@@ -83,12 +100,31 @@ function repairJSON(text: string): string {
     '{"id": "$1", "text": "$2"}'
   )
 
+  // Fix missing "text": key with lowercase id
+  repaired = repaired.replace(
+    /\{"id"\s*:\s*"([a-d])"\s*,\s*"([^"]+)"\s*\}/gi,
+    '{"id": "$1", "text": "$2"}'
+  )
+
   // Fix trailing commas before closing brackets
   repaired = repaired.replace(/,\s*\]/g, ']')
   repaired = repaired.replace(/,\s*\}/g, '}')
 
-  // Fix double quotes issues (escaped quotes that shouldn't be)
-  repaired = repaired.replace(/\\"/g, '"')
+  // Fix escaped quotes that shouldn't be (but be careful not to break valid escapes)
+  // Only unescape if it's clearly wrong
+  repaired = repaired.replace(/([^\\])\\"/g, '$1"')
+
+  // Fix single quotes used instead of double quotes for strings
+  // This is risky, so only do it if there are no double quotes in the vicinity
+  // repaired = repaired.replace(/'/g, '"') // Too risky, disabled
+
+  // Fix newlines in strings (replace with space)
+  repaired = repaired.replace(/:\s*"([^"]*)\n([^"]*)"/g, ': "$1 $2"')
+
+  // Log repair attempts in debug mode
+  if (repaired !== text) {
+    console.log('[Parser] JSON repaired, changes made')
+  }
 
   return repaired
 }
