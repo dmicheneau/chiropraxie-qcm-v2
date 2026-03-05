@@ -2,7 +2,8 @@
 
 > Application PWA de quiz pour la révision en chiropraxie — offline-first, avec IA locale et répétition espacée.
 
-[![Build](https://img.shields.io/github/actions/workflow/status/dmicheneau/chiropraxie-qcm-v2/ci.yml?branch=main&label=build)](https://github.com/dmicheneau/chiropraxie-qcm-v2/actions)
+[![Build](https://img.shields.io/github/actions/workflow/status/dmicheneau/chiropraxie-qcm-v2/ci.yml?branch=master&label=build)](https://github.com/dmicheneau/chiropraxie-qcm-v2/actions)
+[![Coverage](https://codecov.io/gh/dmicheneau/chiropraxie-qcm-v2/branch/master/graph/badge.svg)](https://codecov.io/gh/dmicheneau/chiropraxie-qcm-v2)
 [![License: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 [![PWA](https://img.shields.io/badge/PWA-offline--first-blueviolet)](#)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178c6?logo=typescript&logoColor=white)](#)

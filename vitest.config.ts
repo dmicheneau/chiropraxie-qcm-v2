@@ -11,6 +11,11 @@ export default defineConfig({
     css: true,
     exclude: ['node_modules', 'dist', 'e2e', '**/*.spec.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      reportsDirectory: './coverage',
+    },
   },
   resolve: {
     alias: {

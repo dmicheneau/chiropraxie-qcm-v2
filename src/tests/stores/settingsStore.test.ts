@@ -24,7 +24,7 @@ const createLocalStorageMock = () => {
 }
 
 const localStorageMock = createLocalStorageMock()
-Object.defineProperty(global, 'localStorage', { value: localStorageMock, writable: true })
+Object.defineProperty(globalThis, 'localStorage', { value: localStorageMock, writable: true })
 
 // Mock document.documentElement.setAttribute
 const mockSetAttribute = vi.fn()
@@ -54,7 +54,7 @@ describe('settingsStore', () => {
   beforeEach(async () => {
     vi.clearAllMocks()
     localStorageMock.clear()
-    
+
     // Reset the store module to get a fresh instance
     vi.resetModules()
   })
@@ -109,10 +109,18 @@ describe('settingsStore', () => {
     it('accepts all valid themes', async () => {
       const { useSettingsStore } = await import('@/stores/settingsStore')
       const themes: ThemeName[] = [
-        'toulouse', 'nocturne', 'clown', 'azure', 'forest',
-        'sunset', 'ocean', 'medical', 'lavande', 'cupcake'
+        'toulouse',
+        'nocturne',
+        'clown',
+        'azure',
+        'forest',
+        'sunset',
+        'ocean',
+        'medical',
+        'lavande',
+        'cupcake',
       ]
-      
+
       for (const theme of themes) {
         act(() => {
           useSettingsStore.getState().setTheme(theme)
@@ -207,7 +215,7 @@ describe('settingsStore', () => {
     it('loads settings from database', async () => {
       const { db } = await import('@/services/db')
       const { useSettingsStore } = await import('@/stores/settingsStore')
-      
+
       const mockSettings = {
         id: 'default',
         theme: 'nocturne' as ThemeName,
@@ -226,13 +234,13 @@ describe('settingsStore', () => {
           timeout: 45000,
         },
       }
-      
+
       vi.mocked(db.settings.get).mockResolvedValueOnce(mockSettings)
-      
+
       await act(async () => {
         await useSettingsStore.getState().loadSettings()
       })
-      
+
       expect(useSettingsStore.getState().theme).toBe('nocturne')
       expect(useSettingsStore.getState().quizSettings.defaultQuestionCount).toBe(15)
       expect(useSettingsStore.getState().ollamaSettings.enabled).toBe(true)
@@ -241,21 +249,21 @@ describe('settingsStore', () => {
     it('applies theme from database', async () => {
       const { db } = await import('@/services/db')
       const { useSettingsStore } = await import('@/stores/settingsStore')
-      
+
       const mockSettings = {
         id: 'default',
         theme: 'azure' as ThemeName,
         quizSettings: useSettingsStore.getState().quizSettings,
         ollamaSettings: useSettingsStore.getState().ollamaSettings,
       }
-      
+
       vi.mocked(db.settings.get).mockResolvedValueOnce(mockSettings)
       mockSetAttribute.mockClear()
-      
+
       await act(async () => {
         await useSettingsStore.getState().loadSettings()
       })
-      
+
       expect(mockSetAttribute).toHaveBeenCalledWith('data-theme', 'azure')
     })
   })
@@ -264,13 +272,13 @@ describe('settingsStore', () => {
     it('saves settings to database', async () => {
       const { db } = await import('@/services/db')
       const { useSettingsStore } = await import('@/stores/settingsStore')
-      
+
       vi.mocked(db.settings.put).mockClear()
-      
+
       act(() => {
         useSettingsStore.getState().setTheme('forest')
       })
-      
+
       // saveSettings is called automatically by setTheme
       // Wait for async operation
       await new Promise(resolve => setTimeout(resolve, 10))
