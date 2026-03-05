@@ -1,3 +1,41 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr
+dev-dist/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test outputs
+playwright-report/
+test-results/
+playwright/.cache/
+coverage/
+
+# Debug dumps
+full_dump.html
+mobile_dump.html
+
 # Logs
 logs
 *.log
@@ -7,26 +45,21 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# AI tooling
+.opencode/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# Personal notes
+brainstorming-session*.md
+AGENTS.md
 
-# Testing
-coverage
+# Mintlify leftover
+.mintignore
 
-# Playwright
-test-results/
-playwright-report/
-playwright/.cache/
+# TypeScript build cache
+*.tsbuildinfo
+
+# ESLint cache
+.eslintcache
+
+# Playwright auth state
+playwright/.auth/
