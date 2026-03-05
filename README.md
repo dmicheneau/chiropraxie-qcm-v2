@@ -12,13 +12,32 @@
 
 ## 📸 Captures d'écran
 
-> _Captures d'écran à venir — contributions bienvenues !_
+<p align="center">
+  <img src="docs/screenshots/home.png" alt="Page d'accueil" width="700" />
+</p>
+<p align="center"><em>Page d'accueil — tableau de bord avec statistiques et streaks</em></p>
 
-<!-- Ajouter ici des captures d'écran de l'application :
-![Accueil](docs/screenshots/home.png)
-![Quiz](docs/screenshots/quiz.png)
-![Résultats](docs/screenshots/results.png)
--->
+<details>
+<summary>🖼️ Voir toutes les captures</summary>
+
+<br>
+
+|                 Quiz                 |                 Résultats                  |
+| :----------------------------------: | :----------------------------------------: |
+|  ![Quiz](docs/screenshots/quiz.png)  | ![Résultats](docs/screenshots/results.png) |
+| _Configuration et lancement de quiz_ |    _Résultats détaillés après un quiz_     |
+
+|                Statistiques                 |                 Thèmes                 |
+| :-----------------------------------------: | :------------------------------------: |
+| ![Statistiques](docs/screenshots/stats.png) | ![Thèmes](docs/screenshots/themes.png) |
+| _Dashboard avec graphiques et progression_  |  _10 thèmes visuels personnalisables_  |
+
+|                  Import                  |                Mobile (Dark mode)                |
+| :--------------------------------------: | :----------------------------------------------: |
+|  ![Import](docs/screenshots/import.png)  | ![Mobile Dark](docs/screenshots/mobile-dark.png) |
+| _Import depuis Quizlet, PDF, images, IA_ |          _Vue mobile — thème Nocturne_           |
+
+</details>
 
 ---
 
