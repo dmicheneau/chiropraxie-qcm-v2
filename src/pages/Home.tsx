@@ -56,22 +56,30 @@ export default function HomePage() {
     loadSettings()
   }, [loadProgress, loadSettings])
 
-  // Load question bank
-  const bank = useLiveQuery(async () => {
-    let existingBank = await db.banks.get('default')
-
-    if (!existingBank) {
-      const defaultBank = createDefaultQuestionBank()
-      await db.banks.add(defaultBank)
-
-      for (const question of defaultBank.questions) {
-        await db.questions.add(question)
+  // Initialize default bank if needed
+  useEffect(() => {
+    const initBank = async () => {
+      try {
+        const existingBank = await db.banks.get('default')
+        if (!existingBank) {
+          const defaultBank = createDefaultQuestionBank()
+          await db.banks.add(defaultBank)
+          
+          // Add questions in a transaction for better performance
+          await db.transaction('rw', db.questions, async () => {
+            await db.questions.bulkAdd(defaultBank.questions)
+          })
+        }
+      } catch (error) {
+        console.error('Error initializing default bank:', error)
       }
-
-      existingBank = defaultBank
     }
+    initBank()
+  }, [])
 
-    return existingBank
+  // Load question bank (READ ONLY)
+  const bank = useLiveQuery(async () => {
+    return await db.banks.get('default')
   }, [])
 
   // Calculate success rate

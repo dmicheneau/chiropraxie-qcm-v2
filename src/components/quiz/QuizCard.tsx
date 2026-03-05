@@ -77,18 +77,26 @@ export default function QuizCard({
     <Card className="max-w-2xl mx-auto">
       {/* Progress */}
       <div className="mb-4">
-        <div className="flex justify-between text-sm mb-2">
-          <span className="text-base-content/70">
+        <div className="flex justify-between items-start text-sm mb-2 gap-2">
+          <span 
+            className="text-base-content/70" 
+            data-testid="question-indicator"
+          >
             {t('quiz.question', { number: questionNumber, total: totalQuestions })}
           </span>
-          <span className="badge badge-primary">{question.theme}</span>
+          <span className="badge badge-primary shrink-0">{question.theme}</span>
         </div>
         <ProgressBar value={progress} size="sm" />
       </div>
 
       {/* Question */}
       <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">{question.text}</h2>
+        <h2 
+          className="text-xl font-semibold mb-2"
+          data-testid="question-text"
+        >
+          {question.text}
+        </h2>
         {isMultipleChoice && (
           <p className="text-sm text-base-content/70">{t('quiz.selectAnswers')}</p>
         )}
@@ -125,11 +133,11 @@ export default function QuizCard({
       {/* Actions */}
       <div className="flex justify-end gap-2">
         {!showResult ? (
-          <Button onClick={onSubmit} disabled={!hasAnswer}>
+          <Button onClick={onSubmit} disabled={!hasAnswer} data-testid="submit-answer-btn">
             {t('quiz.submit')}
           </Button>
         ) : (
-          <Button onClick={onNext}>
+          <Button onClick={onNext} data-testid="next-question-btn">
             {questionNumber === totalQuestions ? t('quiz.finish') : t('quiz.next')}
             <ChevronRight size={18} />
           </Button>

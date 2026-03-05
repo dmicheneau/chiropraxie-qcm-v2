@@ -25,21 +25,21 @@ export default defineConfig({
             src: 'logo.svg',
             sizes: 'any',
             type: 'image/svg+xml',
-            purpose: 'any'
+            purpose: 'any',
           },
           {
             src: 'logo192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any maskable',
           },
           {
             src: 'logo512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ]
+            purpose: 'any maskable',
+          },
+        ],
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
@@ -51,28 +51,28 @@ export default defineConfig({
               cacheName: 'google-fonts-cache',
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
               },
               cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          }
-        ]
+                statuses: [0, 200],
+              },
+            },
+          },
+        ],
       },
       devOptions: {
-        enabled: true
-      }
-    })
+        enabled: true,
+      },
+    }),
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src')
-    }
+      '@': path.resolve(__dirname, './src'),
+    },
   },
   server: {
-    port: 5173,
-    open: true
+    port: 5176,
+    open: true,
   },
   build: {
     outDir: 'dist',
@@ -86,9 +86,9 @@ export default defineConfig({
           'db-vendor': ['dexie', 'dexie-react-hooks'],
           'ui-vendor': ['lucide-react', 'chart.js', 'react-chartjs-2'],
           'pdf-vendor': ['pdfjs-dist'],
-          'ocr-vendor': ['tesseract.js']
-        }
-      }
-    }
-  }
+          'ocr-vendor': ['tesseract.js'],
+        },
+      },
+    },
+  },
 })

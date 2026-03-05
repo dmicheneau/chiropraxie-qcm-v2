@@ -18,7 +18,7 @@ class AppDatabase extends Dexie {
 
   constructor() {
     super('chiropraxie-qcm-v2')
-    
+
     this.version(1).stores({
       questions: 'id, theme, subtheme, difficulty, source, createdAt',
       banks: 'id, name, isDefault, createdAt',
@@ -37,10 +37,35 @@ export async function initializeDatabase() {
   try {
     // Vérifier si les paramètres par défaut existent
     const existingSettings = await db.settings.get('default')
-    
+
     if (!existingSettings) {
+      // Try to recover from localStorage first (useful for tests or data recovery)
+      let initialSettings: UserSettings | null = null
+
+      try {
+        const localData = localStorage.getItem('chiropraxie-qcm-settings')
+        if (localData) {
+          const parsed = JSON.parse(localData)
+          // Check if the state shape matches what we expect
+          if (parsed.state && parsed.state.quizSettings) {
+            initialSettings = {
+              id: 'default',
+              theme: parsed.state.theme || 'toulouse',
+              language: 'fr',
+              hasSeenOnboarding: parsed.state.hasSeenOnboarding ?? false,
+              quizSettings: parsed.state.quizSettings,
+              ollamaSettings: parsed.state.ollamaSettings,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to recover settings from localStorage', e)
+      }
+
       // Créer les paramètres par défaut
-      const defaultSettings: UserSettings = {
+      const defaultSettings: UserSettings = initialSettings || {
         id: 'default',
         theme: 'toulouse',
         language: 'fr',
@@ -62,13 +87,13 @@ export async function initializeDatabase() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
-      
+
       await db.settings.add(defaultSettings)
     }
-    
+
     // Vérifier si le streak existe
     const existingStreak = await db.streaks.get('default')
-    
+
     if (!existingStreak) {
       // Créer le streak par défaut
       const defaultStreak: Streak = {
@@ -80,10 +105,10 @@ export async function initializeDatabase() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
-      
+
       await db.streaks.add(defaultStreak)
     }
-    
+
     console.log('Database initialized successfully')
   } catch (error) {
     console.error('Error initializing database:', error)

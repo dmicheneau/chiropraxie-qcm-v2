@@ -20,7 +20,7 @@ interface SettingsState {
     model: string
     timeout: number
   }
-  
+
   // Actions
   setTheme: (theme: ThemeName) => void
   setQuizSettings: (settings: Partial<SettingsState['quizSettings']>) => void
